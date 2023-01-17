@@ -3,18 +3,83 @@ title: "R Notebook"
 output: html_notebook
 ---
 
-```{r}
+
+
+```{r include = F}
 library(survival)
 library(survMisc)
 library(gtools)
 library(ggplot2)
 library(dplyr)
+library(tidyr)
 ```
 
+## Wprowadzenie, eksploracyjna analiza danych
+
+Opisać dataset diabetic, jakie są w nim zmienne, czego dotyczą itd. (WAŻNE ŻEBY WSPOMNIEĆ ŻE NIE ANALIZUJEMY TUTAJ PRZEŻYCIA TYLKO UTRATĘ WZROKU)
 
 ```{r}
 diabetic <- survival::diabetic
+
+summary(diabetic)
 ```
+
+Powyżej widoczne jest wstępne podsumowanie zmiennych zawartych w rozpatrywanym przez nas zbiorze danych. Widać, że w zbiorze danych nie występują wartości NA oznaczające brak danych. R zinterpretował zmienne `trt` oraz `risk` jako zmienne numeryczne, gdy one tak naprawdę są zmiennymi typu factor. Poniższy kod zamienia typy tych zmiennych na prawidłowe.
+
+```{r}
+
+diabetic <- diabetic %>% mutate(trt = as.factor(as.character(trt)), risk = as.factor(risk))
+
+```
+
+Spojrzymy również na rozkłady tych zmiennych, już po kategoryzacji.
+
+```{r}
+
+diabetic.plot.hist = diabetic %>% dplyr::select(c(age, time))
+
+plot1 <- ggplot(gather(diabetic.plot.hist), aes(x = value)) +  
+  geom_histogram(colour = 1, fill = "blue", bins = 30)+
+  ggtitle("Rozkłady zmiennych zbioru danych")+
+  ylab("Częstość występowania")+
+  xlab("Wartość zmiennej")+
+  facet_wrap(~ key, scales = "free", ncol = 2)
+plot1
+
+diabetic.plot.bar = diabetic %>% dplyr::select(c(laser, eye, trt, status))
+
+plot2 <- ggplot(gather(diabetic.plot.bar), aes(x = value)) +  
+  geom_bar(colour = 1, fill = "blue")+
+  ggtitle("Rozkłady zmiennych zbioru danych")+
+  ylab("Częstość występowania")+
+  xlab("Wartość zmiennej")+
+  facet_wrap(~ key, scales = "free", ncol = 2)
+plot2
+
+ggplot(as.data.frame(table(diabetic$risk)), aes(x=Var1, y = Freq)) + geom_col(colour = 1, fill = "blue")+
+    ylab("Częstość występowania")+
+    xlab("Wartość zmiennej risk")
+
+rm(diabetic.plot.bar)
+rm(diabetic.plot.hist)
+```
+
+Opisać wykresiki powyżej
+
+## Wstępna analiza utraty wzroku
+
+Analizę rozpoczniemy od estymacji krzywej prawdopodobieństwa utraty wzroku w stosunku do czasu dla estymatorów Kaplana-Meiera oraz Nelsona-Aalena. Przerywanymi liniami zaznaczony został 95\% przedział ufności tych estymatorów. 
+
+```{r}
+mod.1 <- survfit(Surv(time, status) ~ 1, conf.type="plain", data=diabetic)
+mod.2 <- survfit(Surv(time, status) ~ 1, conf.type="plain", type="fleming-harrington", data=diabetic)
+
+plot(mod.1, xlab="Czas", ylab="Prawdopodobieństwo utraty wzroku", col = 'black', pch=16)
+lines(mod.2, col="red", pch=16)
+legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black','red'), pch=16)
+```
+
+Na powyższym wykresie nie zauważyliśmy dużych różnic pomiędzy estymatorami. 
 
 
 ```{r}
