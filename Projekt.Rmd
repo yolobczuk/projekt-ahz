@@ -68,101 +68,186 @@ Opisać wykresiki powyżej
 
 ## Wstępna analiza utraty wzroku
 
-Analizę rozpoczniemy od estymacji krzywej prawdopodobieństwa utraty wzroku w stosunku do czasu dla estymatorów Kaplana-Meiera oraz Nelsona-Aalena. Przerywanymi liniami zaznaczony został 95\% przedział ufności tych estymatorów. 
+Analizę rozpoczniemy od estymacji krzywej prawdopodobieństwa zachowania wzroku w stosunku do czasu dla estymatorów Kaplana-Meiera oraz Nelsona-Aalena. Przerywanymi liniami zaznaczony został 95\% przedział ufności tych estymatorów. 
 
 ```{r}
 mod.1 <- survfit(Surv(time, status) ~ 1, conf.type="plain", data=diabetic)
 mod.2 <- survfit(Surv(time, status) ~ 1, conf.type="plain", type="fleming-harrington", data=diabetic)
 
-plot(mod.1, xlab="Czas", ylab="Prawdopodobieństwo utraty wzroku", col = 'black', pch=16)
+plot(mod.1, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = 'black', pch=16)
 lines(mod.2, col="red", pch=16)
 legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black','red'), pch=16)
 ```
 
-Na powyższym wykresie nie zauważyliśmy dużych różnic pomiędzy estymatorami. 
-
-
-```{r}
-km = survfit(Surv(time, status) ~ 1, conf.type="plain", data=diabetic)
-summary(km)
-plot(km)
-
-km = survfit(Surv(time, status) ~ trt, conf.type="plain", data=diabetic)
-summary(km)
-plot(km, col=c("red","green"))
-legend(50,1,unique(diabetic$trt),lty=1, col=c("red","green"),bty="n")
-#plot(km, fun="cumhaz",xlab="Czas", ylab="Skumulowany hazard")
-
-km1=survfit(Surv(time,status)~trt,conf.type="log", data=diabetic)
-lines(km1, col="red")
-km2=survfit(Surv(time,status)~trt,conf.type="log-log", data=diabetic)
-lines(km2, col="green")
-
-#estymator Nelsona-Aalena
-Nels=survfit(Surv(time,status) ~ trt, conf.type ="log-log", type="fleming-harrington",data=diabetic) # estymator NA
-summary(Nels)
-lines(Nels,col="blue")
-Nels2=survfit(Surv(time,status) ~ trt, conf.type ="plain", type="fleming-harrington",data=diabetic) # estymator NA
-lines(Nels2,col="grey")
-
-# wykres funkcji skumulowanego hazardu
-plot(km1, fun="cumhaz",xlab="Czas", ylab="Skumulowany hazard")
-lines(Nels2, fun="cumhaz",col="red")
-
-# wykres funkcji trwania dla grup 
-km = survfit(Surv(time, status) ~ eye, conf.type="plain", data=diabetic) # estymator KM
-summary(km)
-plot(km, col=c("red","green"))
-legend(50,0.3,c("left","right"),lty=1, col=c("red","green"),bty="n")
-
-diabetic$age_q <- quantcut(diabetic$age,q=4)
-
-test=survdiff(Surv(time, status) ~ laser, data=diabetic, rho=1) # test Peto i Peto
-test # wniosek: zmienna sex jest istotnym predyktorem (na poziomie istotności alfa=0,05)
-test=survdiff(Surv(time, status) ~ laser, rho=0, data=diabetic) # test log-rank
-test
-
-test=survdiff(Surv(time, status) ~ age_q, data=diabetic, rho=1) # test Peto i Peto
-test # wniosek: zmienna sex jest istotnym predyktorem (na poziomie istotności alfa=0,05)
-test=survdiff(Surv(time, status) ~ age_q, rho=0, data=diabetic) # test log-rank
-test
-
-test=survdiff(Surv(time, status) ~ trt, data=diabetic, rho=1) # test Peto i Peto
-test # wniosek: zmienna sex jest istotnym predyktorem (na poziomie istotności alfa=0,05)
-test=survdiff(Surv(time, status) ~ trt, rho=0, data=diabetic) # test log-rank
-test
-
-test=survdiff(Surv(time, status) ~ risk, data=diabetic, rho=1) # test Peto i Peto
-test # wniosek: zmienna sex jest istotnym predyktorem (na poziomie istotności alfa=0,05)
-test=survdiff(Surv(time, status) ~ risk, rho=0, data=diabetic) # test log-rank
-test
-
-test=survdiff(Surv(time, status) ~ eye, data=diabetic, rho=1) # test Peto i Peto
-test # wniosek: zmienna sex jest istotnym predyktorem (na poziomie istotności alfa=0,05)
-test=survdiff(Surv(time, status) ~ eye, rho=0, data=diabetic) # test log-rank
-test
-
-
-
-Nels2=survfit(Surv(time, status) ~ trt, conf.type ="plain", type="fleming-harrington",data=diabetic) # estymator NA
-lines(Nels2,col="grey")
-```
-
-
+Na powyższym wykresie nie zauważyliśmy dużych różnic pomiędzy estymatorami. Bardzo szybko (po około 2 miesiącach) prawdopodobieństwo zachowania wzroku spada poniżej 1 i utrzymuje ten spadek aż do poziomu około 60\% na którym to utrzymuje się od 60 miesięcy aż do 75 miesięcy. Spojrzymy teraz na wykresy skumulowanego hazardu.
 
 ```{r}
-t1=survfit(Surv(time, status) ~ trt,data=diabetic)
-comp(ten(t1),p=c(0,1,1,0.5,0.5),q=c(1,0,1,0.5,2)) # różne wagi w testach Fleminga-Harringtona
-# jako druga lista w przypadku zmiennej dychotomicznej są wyświetlane testy Renyi
-#kategoryzacja zmiennej według kwantyli i porównywanie krzywych przeżycia dla grup kwartylowych
-t2 = ten(t1)
-comp(t2,p=c(0,1,1,0.5,0.5),q=c(1,0,1,0.5,2))
-b = attr(t2, "lrt") #lrw - obliczenia pomocnicze, lrt - test wilcoxona, sup - test supremum (kołmogorowa, typu reni), tft - testy dla trendu dla zmiennej w skali porządkowej
-c = attr(t2, "sup")
-cbind(b$W, b$pNorm, c$pSupBr)
+plot(mod.1, fun="cumhaz", xlab="Czas", ylab="Hazard skumulowany", col = 'black')
+lines(mod.2, fun="cumhaz", col="red")
+legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black','red'), pch=16)
+
+rm(mod.1)
+rm(mod.2)
 ```
 
+Oferują nam one bardzo podobną interpretację jak wykresy prawdopodobieństw. Szansa na utratę wzroku bardzo szybko (znów po około 2 miesiącach) było większe od 0 i w dość równomierny sposób wzrastała do poziomu około 0.6, na którym to utrzymywała się od około 60 miesięcy do końca osi X czyli 75 miesięcy. Przejdziemy teraz do wyznaczenia krzywych dla predyktorów zawartych w naszym zbiorze danych - zmiennych `trt`, `age`, `laser`, `eye` oraz `risk`.
 
+```{r}
+mod.km.trt <- survfit(Surv(time, status) ~ trt, conf.type="plain", data=diabetic)
+mod.na.trt <- survfit(Surv(time, status) ~ trt, conf.type="plain", data=diabetic, type="fleming-harrington")
+
+plot(mod.km.trt, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = 'black', main="Krzywa zachowania wzroku dla zmiennej trt")
+lines(mod.na.trt, col="red")
+legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black','red'), pch=16)
+
+mod.km.age <- survfit(Surv(time, status) ~ age, conf.type="plain", data=diabetic)
+mod.na.age <- survfit(Surv(time, status) ~ age, conf.type="plain", data=diabetic, type="fleming-harrington")
+
+plot(mod.km.age, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = 'black', main="Krzywa zachowania wzroku dla zmiennej age")
+lines(mod.na.age, col="red")
+legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black','red'), pch=16)
+
+mod.km.laser <- survfit(Surv(time, status) ~ laser, conf.type="plain", data=diabetic)
+mod.na.laser <- survfit(Surv(time, status) ~ laser, conf.type="plain", data=diabetic, type="fleming-harrington")
+
+plot(mod.km.laser, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = 'black', main="Krzywa zachowania wzroku dla zmiennej laser")
+lines(mod.na.laser, col="red")
+legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black','red'), pch=16)
+
+mod.km.eye <- survfit(Surv(time, status) ~ eye, conf.type="plain", data=diabetic)
+mod.na.eye <- survfit(Surv(time, status) ~ eye, conf.type="plain", data=diabetic, type="fleming-harrington")
+
+plot(mod.km.eye, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = 'black', main="Krzywa zachowania wzroku dla zmiennej eye")
+lines(mod.na.eye, col="red")
+legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black','red'), pch=16)
+
+mod.km.risk <- survfit(Surv(time, status) ~ risk, conf.type="plain", data=diabetic)
+mod.na.risk <- survfit(Surv(time, status) ~ risk, conf.type="plain", data=diabetic, type="fleming-harrington")
+
+plot(mod.km.risk, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = 'black', main="Krzywa zachowania wzroku dla zmiennej risk")
+lines(mod.na.risk, col="red")
+legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black','red'), pch=16)
+
+
+```
+
+Interpretacja...
+
+Ze względu na dość chaotyczny wygląd wykresu dla zmiennej age, zdecydowaliśmy się na faktoryzację tej zmiennej poprzez podział kwantylowy. Poniżej znajdują się wykresy z estymatorami K-M oraz N-A dla tej zmiennej.
+
+```{r}
+diabetic$ageCat <- quantcut(diabetic$age,q=4)
+
+mod.km.ageCat <- survfit(Surv(time, status) ~ ageCat, conf.type="plain", data=diabetic)
+mod.na.ageCat <- survfit(Surv(time, status) ~ ageCat, conf.type="plain", data=diabetic, type="fleming-harrington")
+
+plot(mod.km.ageCat, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = 'black', main="Krzywa zachowania wzroku dla zmiennej ageCat (po faktoryzacji)")
+lines(mod.na.ageCat, col="red")
+legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black','red'), pch=16)
+```
+
+Interpretacja...
+
+Po wizualnej inspekcji przyszedł czas na formalne testy. Użyte zostaną testy Peto-Peto, log-rank, modyfikacja Andersena testu Peto-Peto oraz test Fleminga-Harringtona dla różnych wag. Mamy tutaj na uwadze, że tylko jedna krzywa nie przecinała się między wariantami - krzywa dla zmiennej `trt`. Dla zmiennych `laser` oraz `eye` użyte zostaną wartości z testów Renyi a dla zmiennych `risk` i `ageCat` testy trendów, gdyż są to zmienne na skali porządkowej.
+
+```{r}
+test=survdiff(Surv(time, status) ~ trt, data=diabetic, rho=1)
+print("Wyniki testu Peto-Peto")
+test
+
+test=survdiff(Surv(time, status) ~ trt, data=diabetic, rho=0)
+print("Wyniki testu log-rank")
+test 
+
+t = ten(mod.km.trt)
+comp(t,p=c(0,1,1,0.5,0.5),q=c(1,0,1,0.5,2))
+a = attr(t, "lrt")
+
+print("Wyniki pozostałych testów")
+cbind(a$W, a$pNorm)
+```
+
+Interpretacja...
+
+```{r}
+test=survdiff(Surv(time, status) ~ ageCat, data=diabetic, rho=1)
+print("Wyniki testu Peto-Peto")
+test 
+
+test=survdiff(Surv(time, status) ~ ageCat, data=diabetic, rho=0)
+print("Wyniki testu log-rank")
+test 
+
+t = ten(mod.km.ageCat)
+comp(t,p=c(0,1,1,0.5,0.5),q=c(1,0,1,0.5,2))
+a=attr(t, 'tft')
+
+print("Wyniki pozostałych testów")
+cbind(a$W, a$tft$pNorm)
+
+```
+
+Interpretacja...
+
+```{r}
+test=survdiff(Surv(time, status) ~ eye, data=diabetic, rho=1)
+print("Wyniki testu Peto-Peto")
+test
+
+test=survdiff(Surv(time, status) ~ eye, data=diabetic, rho=0)
+print("Wyniki testu log-rank")
+test  
+
+t = ten(mod.km.eye)
+comp(t,p=c(0,1,1,0.5,0.5),q=c(1,0,1,0.5,2))
+a = attr(t, "sup")
+
+print("Wyniki pozostałych testów")
+cbind(a$W, a$pSupBr)
+
+```
+
+Interpretacja...
+
+```{r}
+test=survdiff(Surv(time, status) ~ laser, data=diabetic, rho=1)
+print("Wyniki testu Peto-Peto")
+test
+
+test=survdiff(Surv(time, status) ~ laser, data=diabetic, rho=0)
+print("Wyniki testu log-rank")
+test  
+
+t = ten(mod.km.laser)
+comp(t,p=c(0,1,1,0.5,0.5),q=c(1,0,1,0.5,2))
+a = attr(t, "sup")
+
+print("Wyniki pozostałych testów")
+cbind(a$W, a$pSupBr)
+```
+
+Interpretacja...
+
+```{r}
+test=survdiff(Surv(time, status) ~ risk, data=diabetic, rho=1)
+print("Wyniki testu Peto-Peto")
+test
+
+test=survdiff(Surv(time, status) ~ risk, data=diabetic, rho=0)
+print("Wyniki testu log-rank")
+test  
+
+t = ten(mod.km.risk)
+comp(t,p=c(0,1,1,0.5,0.5),q=c(1,0,1,0.5,2))
+a = attr(t, "tft")
+
+print("Wyniki pozostałych testów")
+cbind(a$tft$W, a$tft$pNorm)
+```
+
+Interpretacja...
+
+Podsumowanie...
 
 ```{r}
 Cox=coxph(Surv(time, status)~laser+age+eye+trt+risk, data=diabetic)
@@ -196,6 +281,8 @@ for (i in 1:3)
   lines( smooth.spline(log(Time), reszty[,i] ), lwd=3 )
 }
 ```
+
+
 
 ```{r}
 deviance=residuals(Cox,type="deviance")# jednostki odstaj?ce
