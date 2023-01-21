@@ -271,25 +271,35 @@ Cox=coxph(Surv(time, status)~laser+age+eye+trt+risk, data=diabetic)
 summary(Cox)
 library(MASS)
 stepAIC(Cox,direction="backward")
+```
 
+Ucięty AICem Cox
+
+```{r}
 Cox=coxph(Surv(time, status)~eye + trt + risk, data=diabetic)
 summary(Cox)
+```
 
+Miary R-kwadrat dla Coxa
+
+```{r}
 rsq(Cox)
+```
 
-Prop=cox.zph(Cox,transform="identity") # weryfikacja za?o?enia proporcjonalno?ci
+Weryfikacja założenia o proporcjonalności, H0 - hazard jest proporcjonalny dla danej zmiennej w czasie, na wykresach linia chyba musi być w miarę prosta (wykres liniowy albo stały)
+
+```{r}
+Prop=cox.zph(Cox,transform="identity")
 print(Prop)
 plot(Prop)
 
-#H0 - hazard jest proporcjonalny dla danej zmiennej w czasie
-
-Prop=cox.zph(Cox,transform="rank") # weryfikacja za?o?enia proporcjonalno?ci
+Prop=cox.zph(Cox,transform="rank")
 print(Prop)
 
-Prop=cox.zph(Cox,transform="km") # weryfikacja za?o?enia proporcjonalno?ci
+Prop=cox.zph(Cox,transform="km")
 print(Prop)
 
-reszty=resid(Cox, type="scaledsch") # graficzna weryfikacja za?o?enia proporcjonalno?ci
+reszty=resid(Cox, type="scaledsch")
 Time=as.numeric(rownames(reszty))
 zmienne=c('eye','trt','risk')
 for (i in 1:3) 
@@ -299,36 +309,36 @@ for (i in 1:3)
 }
 ```
 
-
+Wyrzucenie obserwacji o dużej dewiancji (dewiancja wyższa niż 3 odchylenia standardowe)
 
 ```{r}
-deviance=residuals(Cox,type="deviance")# jednostki odstaj?ce
-s=Cox$linear.predictors
-plot(s,deviance,xlab="Liniowy predyktor",ylab="Reszty odchyle?",cex=0.5, pch=20)
+deviance <- residuals(Cox,type="deviance")
+lin.pred <- Cox$linear.predictors
+plot(lin.pred, deviance, xlab="Liniowy predyktor", ylab="Reszty odchyleń", cex=0.5, pch=20)
 abline(h=3,lty=3)
-diabetic$deviance=deviance
-c1=which(diabetic$deviance>3)
+diabetic$deviance <- deviance
+to.del.1 <- which(diabetic$deviance>3)
 ```
 
-
+Wyrzucenie obserwacji na podstawie dfbeta (nwm co to)
 
 ```{r}
-dfb=residuals(Cox,type="dfbeta")
-n=dim(dfb)[1]
-obs.nr=c(1:n)
+df.beta <- residuals(Cox,type="dfbeta")
+n <- dim(df.beta)[1]
+obs.nr <- c(1:n)
 for (j in 1:3) {
-  plot(obs.nr,dfb[,j],xlab="Numer jednostki",ylab="Przyrost oceny parametru",
-      main=zmienne[j])
-  }
-a1=which(dfb[,1]>(0.004)) #usun?? te jednostki
-a2=which(abs(dfb[,2])>(0.06))
-a3=which(abs(dfb[,3])>(0.1))
+  plot(obs.nr, df.beta[,j], xlab="Numer jednostki", ylab="Przyrost oceny parametru", main=zmienne[j])
+}
+to.del.2 <- which(df.beta[,1] < (-0.01))
+to.del.3 <- which(abs(df.beta[,2])>(0.01))
 ```
 
+Ostateczny model
+
 ```{r}
-c=sort(unique(c(a1,a2,a3,c1)))
-dane1=diabetic[-c,] #zredukowany zbi?r
-Cox2<-coxph(Surv(time, status)~eye + trt + risk, data=dane1)
+c <- sort(unique(c(to.del.1, to.del.2, to.del.3)))
+diabetic.red <- diabetic[-c,] 
+Cox2 <- coxph(Surv(time, status)~eye + trt + risk, data=diabetic.red)
 stepAIC(Cox2,direction="backward")
 ```
 
