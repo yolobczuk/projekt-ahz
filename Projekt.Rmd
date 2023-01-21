@@ -16,7 +16,18 @@ library(tidyr)
 
 ## Wprowadzenie, eksploracyjna analiza danych
 
-Opisać dataset diabetic, jakie są w nim zmienne, czego dotyczą itd. (WAŻNE ŻEBY WSPOMNIEĆ ŻE NIE ANALIZUJEMY TUTAJ PRZEŻYCIA TYLKO UTRATĘ WZROKU)
+
+
+Badany w niniejszym opracowaniu zbiór danych składa się z danych leczniczysz odnoszących się do wyników koagulacji laswerowej w leczeniu ratinopatii cukrzycowej. Samo schorzenie spowodowane jest uszkodzeniem naczyń krwionośnych siatkówki oka. W celu wyleczenia schorzenia używana jest laseroteriapa siatkówki. W niniejszej pracy analizowana przez nas będzie czas przeżycia w kontekście utraty ostrości wzrosku oraz wpływu danych zmiennych na przedłużanie tego procesu. W pliku zajdziemy następujące inforamcje:
+  - **id**: Odnosi się do indywidualnego numeru badanej jednostki. W grupie badawczej jest 197 indywidualnych jednostek.
+  - **laser**: typ zastosowanego rozwiązania laserowego w leczeniu. W próbie znajdują się dwie zmienne. Xenon oraz argon.
+  - **age**: Wiek pacjenta w chwili wykrycia schorzenia.
+  - **eye**: Badane oko. Zmienne to "left" oraz "right"
+  - **trt**: Zmienna dychtomiczna odnosząca się do leczenia. 0 = brak leczenia, 1 =  leczenie laserowe.
+  - **risk**: Grupy ryzyka w skali 6-12.
+  - **time**: Czas w miesiącach do wystąpienia zdarzenia utraty wzroku, bądź ostatnia zaobserwowana obserwacja.
+  - **status**: Status badanego w postaci dychotomicznej. 0 = ocenzurowane, 1 = utrata wzrosku przez badaną jednostkę.
+
 
 ```{r}
 diabetic <- survival::diabetic
@@ -64,7 +75,9 @@ rm(diabetic.plot.bar)
 rm(diabetic.plot.hist)
 ```
 
-Opisać wykresiki powyżej
+Na powyższych wykresach dokonaliśmy wizualizacji badanych zmiennych. W przypadku pierwszego z nich zauważyć może częstotliwość występowowania zmiennej **age** oraz **time**. Zauważyć możemy, iż duża ilość pacjentów diagnozowana jest w stosunkowo młodym wieku, gdyż pomiędzy około 9 a 20 rokiem życia. Najmniej diagnozuje się to w wieku powyżej 55 roku życia badanej jednostki. Jednocześnie obok widoczny jest wykres częstotliowści czasu do utraty wzroku. Najczęściej występują zmienne time w okolicy pierwszych 10 miesięcy oraz od 40 do 50 miesięcy.
+Kolejne wykresy przedstawiają rozkłąd dla zmiennych **eye**, **laser**, **status** oraz **trt**. W przypadku zmiennej eye mamy równą ilość badanych zmiennych. Ale możemy zwrócić na znaczną przewagę użycia xenonu, zamiast argonu w zmiennych laser. Dodatkowo widzimy, iż w zmiennej status przeważa liczba danych cenzurowanych (239) niż utraty wzroku (155). Ostania prezentowana na wykresie zmienna to trt. W tym przypadku mamy równą liczbę zmiennych.
+Ostatni analizowany powyżej wykres prezentuje rozkład częstości występowania zmiennej **risk**. Widać, że najczęściej przypisywana jest wartość 9 oraz 10. Najmniej jest niskiego ryzyka na poziomie 6 oraz 8. 
 
 ## Wstępna analiza utraty wzroku
 
@@ -131,9 +144,13 @@ legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black',
 
 ```
 
-Interpretacja...
+**Krzywa zachowania wzroku zmiennej trt**
+Powyżej przedstawione zostały wykresy prawdopodbieństwa zachowania wzroku z wykorzystaniem estymatora Kaplana-Meiera oraz Nelona-Aalena. Widzimy w przypadku krzywej zachowania wzroku dla zmiennej **trt**, że prawdopodobeństwo zachowania wzroku stopniowo maleje. W przypadku estymatora Nelsona-Aalena jednostka ma 80% na utrzymanie wzroku dłużej niż przez 11 miesięcy. Estymator Kaplana-Meiera wskazuje, że jest 80% szans na utrzymanie wzroku dłużej niż 25 miesięcy. Jest bardzo duża różnica na 60 miesiącach, gdzie estymator Nelsona-Aalena wskazuje na 40% szans utrzymania wzroku dłużej niż 60 miesięcy od diagnozy, a estymator Kaplana-Meiera wskazuje 70% szans na utrzymanie wzroku dłużej niż 60 miesięcy.
 
+
+**Krzywa zachowania wzroku zmiennej age**
 Ze względu na dość chaotyczny wygląd wykresu dla zmiennej age, zdecydowaliśmy się na faktoryzację tej zmiennej poprzez podział kwantylowy. Poniżej znajdują się wykresy z estymatorami K-M oraz N-A dla tej zmiennej.
+
 
 ```{r}
 diabetic$ageCat <- quantcut(diabetic$age,q=4)
