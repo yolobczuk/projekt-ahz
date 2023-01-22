@@ -32,6 +32,7 @@ Badany w niniejszym opracowaniu zbiór danych składa się z danych leczniczysz 
 ```{r}
 diabetic <- survival::diabetic
 
+
 summary(diabetic)
 ```
 
@@ -220,6 +221,11 @@ Interpretacja...
 
 ```{r}
 
+km_by_eye <- survfit(Surv(time, status) ~ eye, conf.type="plain", data=diabetic)
+plot(km_by_eye, col=c("blue", "red"),xlab="Czas",ylab="Prawdopodobieństwo przeżycia")
+legend(10,0.3,c("left", "right"),lty=1, col=c("blue", "red"),bty="n")
+
+
 test=survdiff(Surv(time, status) ~ eye, data=diabetic, rho=1)
 print("Wyniki testu Peto-Peto")
 test
@@ -237,7 +243,7 @@ cbind(a$W, a$pSupBr)
 
 ```
 
-Interpretacja...
+Na powyżej przedstawionym wykresie prawdopodobieństwa utraty wzroku z podziałem na wpływ zmiennych **eye**. Widać, iż przeprowadzone testy wskazały na poziomie istotności 0,05 na odrzucenie hipotezy zerowej i przyjęcie hipotezy alternatywnej, mówiącej o różnicy między wynikami badanych zmiennych. Na wykresie widać, iż do około 80% szans zmienne zachowują się tak samo. Czy to prawe, czy lewe oko to w obu przypadkach występuje około 80% szans na utrzymanie wzroku dłużej niż 20 miesięcy. Po 20 miesiącach zwiększa się prawdopodobieństwo dla lewego oka. Na utrzymanie wzroku dłużej niż 60 miesięcy prawdopodobieństwo dla lewego oka jest nawet o 10% wyższe.
 
 ```{r}
 km_by_laser <- survfit(Surv(time, status) ~ laser, conf.type="plain", data=diabetic)
@@ -260,9 +266,17 @@ print("Wyniki pozostałych testów")
 cbind(a$W, a$pSupBr)
 ```
 
-Powyżej przedstawione zostało sprawdzenie prawdopodobieństwa utraty wzroku w przypadku użycia różnej formy terapi laserowej. Po wynikach testów oraz wizualizacji widzimy, iż grupy zachowują się bardzo podobnie. W teście log rank na poziomie istoności 0,05 nie mamy podstaw do odrzucenia hipotezy zerowej mówiącej o podobieństwie rozkłądu grup. Badana jednostka ma w przypadku obu zastosowanych metod 80% szans na utrzymanie wzroku dłużej niż 18 miesięcy. Różnica pojawia się na końcu, gdzie osoby leczone xenonem mają około 6% większą szansę utrzymania wzroku dłużej niż 60 miesięcy.
+Powyżej przedstawione zostało sprawdzenie prawdopodobieństwa utraty wzroku w przypadku użycia różnej formy terapi laserowej. Po wynikach testów oraz wizualizacji widzimy, iż grupy zachowują się bardzo podobnie. W teście log rank na poziomie istoności 0,05 nie mamy podstaw do odrzucenia hipotezy zerowej mówiącej o podobieństwie rozkładu grup dla utraty wzroku. Badana jednostka ma w przypadku obu zastosowanych metod 80% szans na utrzymanie wzroku dłużej niż 18 miesięcy. Różnica pojawia się na końcu, gdzie osoby leczone xenonem mają około 6% większą szansę utrzymania wzroku dłużej niż 60 miesięcy.
 
 ```{r}
+
+km_by_risk <- survfit(Surv(time, status) ~ risk, conf.type="plain", data=diabetic)
+plot(km_by_risk, col=c("blue", "red", "green"
+, "yellow","grey", 'black'),xlab="Czas",ylab="Prawdopodobieństwo przeżycia")
+legend(10,0.3,c("6", "8", "9", "10", "11", "12"),lty=1, col=c("blue", "red", "green"
+, "yellow","grey", 'black'),bty="n")
+
+
 test=survdiff(Surv(time, status) ~ risk, data=diabetic, rho=1)
 print("Wyniki testu Peto-Peto")
 test
@@ -279,7 +293,11 @@ print("Wyniki pozostałych testów")
 cbind(a$tft$W, a$tft$pNorm)
 ```
 
-Interpretacja...
+Do sprawdzenia, czy dobrze tu są brane zmienne na wykres.
+
+Na podstawie wyników testów możemy stwierdzić, iż na poziomie istoności 0,05 odrzucamy hipotezę zerową mówiącą o podobieństwie grup na rzecz alternatywnej. Badane przez nas grupy mają rożne rozkłady przeżycia. Zauważyć możemy, iż nakrótszy okres przeżycia będzie w grupie 10. Najdłużysz będzie w najniższej grupie 6.
+
+
 
 Podsumowanie...
 
@@ -289,6 +307,11 @@ summary(Cox)
 library(MASS)
 stepAIC(Cox,direction="backward")
 ```
+#Do weryfikacji
+
+Po wynikach modelu proporcjonalnego hazardu Coxa widzimy, że istone zmienne do naszego modelu na poziomie istotności 0,05 to grupa 10 ryzyka oraz przeprowadzanie badania **trt**. 
+
+#Do opisania parametry modelu. 
 
 Ucięty AICem Cox
 
