@@ -41,9 +41,15 @@ Powyżej widoczne jest wstępne podsumowanie zmiennych zawartych w rozpatrywanym
 
 diabetic <- diabetic %>% mutate(trt = as.factor(as.character(trt)), risk = as.factor(risk))
 
+
+```
+Sprawdzenie braków danych w zbiorze.
+
+```{r}
+sapply(diabetic, function(x) sum(is.na(x)))
 ```
 
-Spojrzymy również na rozkłady tych zmiennych, już po kategoryzacji.
+Widać, że nie występują braki w naszych danych. Spojrzymy teraz również na rozkłady tych zmiennych, już po kategoryzacji.
 
 ```{r}
 
@@ -168,6 +174,10 @@ Interpretacja...
 Po wizualnej inspekcji przyszedł czas na formalne testy. Użyte zostaną testy Peto-Peto, log-rank, modyfikacja Andersena testu Peto-Peto oraz test Fleminga-Harringtona dla różnych wag. Mamy tutaj na uwadze, że tylko jedna krzywa nie przecinała się między wariantami - krzywa dla zmiennej `trt`. Dla zmiennych `laser` oraz `eye` użyte zostaną wartości z testów Renyi a dla zmiennych `risk` i `ageCat` testy trendów, gdyż są to zmienne na skali porządkowej.
 
 ```{r}
+km_by_trt <- survfit(Surv(time, status) ~ trt, conf.type="plain", data=diabetic)
+plot(km_by_trt, col=c("blue", "red"),xlab="Czas",ylab="Prawdopodobieństwo przeżycia")
+legend(10,0.3,c("no treatment", "laser"),lty=1, col=c("blue", "red"),bty="n")
+
 test=survdiff(Surv(time, status) ~ trt, data=diabetic, rho=1)
 print("Wyniki testu Peto-Peto")
 test
@@ -184,9 +194,11 @@ print("Wyniki pozostałych testów")
 cbind(a$W, a$pNorm)
 ```
 
-Interpretacja...
+Powyżej przedstawiony został wpływ zmiennej **trt** na wyniki prawdopobieństwa utarty wzroku przez badaną jednostkę. Jak możemy zauważyć linie zachowują inaczej. Badana jednostka ma 80% szans na utrzymanie wzroku dłużej niż 15 miesięcy bez leczenia. W przypadku leczenia laserowego badana jednostka ma 80% szans na utrzymanie wzroku dłużej niż 20 miesięcy. Po wynikach testu możemy również zauważyć różnicę rozkładów. Test Log Rank wskazuje na poziomie istotności 0,05 na odrzucenie hipotezy zerowej na rzecz alternatywnej mówiącej o różnicy rozkładów, co oznacza, że jest znaczna różnica pomiędzy wynikami braku zabiegów a przyjmowaniem zabiegu laserowego.
 
 ```{r}
+
+
 test=survdiff(Surv(time, status) ~ ageCat, data=diabetic, rho=1)
 print("Wyniki testu Peto-Peto")
 test 
@@ -207,6 +219,7 @@ cbind(a$W, a$tft$pNorm)
 Interpretacja...
 
 ```{r}
+
 test=survdiff(Surv(time, status) ~ eye, data=diabetic, rho=1)
 print("Wyniki testu Peto-Peto")
 test
@@ -227,6 +240,10 @@ cbind(a$W, a$pSupBr)
 Interpretacja...
 
 ```{r}
+km_by_laser <- survfit(Surv(time, status) ~ laser, conf.type="plain", data=diabetic)
+plot(km_by_laser, col=c("blue", "red"),xlab="Czas",ylab="Prawdopodobieństwo przeżycia")
+legend(10,0.3,c("xenon", "argon"),lty=1, col=c("blue", "red"),bty="n")
+
 test=survdiff(Surv(time, status) ~ laser, data=diabetic, rho=1)
 print("Wyniki testu Peto-Peto")
 test
@@ -243,7 +260,7 @@ print("Wyniki pozostałych testów")
 cbind(a$W, a$pSupBr)
 ```
 
-Interpretacja...
+Powyżej przedstawione zostało sprawdzenie prawdopodobieństwa utraty wzroku w przypadku użycia różnej formy terapi laserowej. Po wynikach testów oraz wizualizacji widzimy, iż grupy zachowują się bardzo podobnie. W teście log rank na poziomie istoności 0,05 nie mamy podstaw do odrzucenia hipotezy zerowej mówiącej o podobieństwie rozkłądu grup. Badana jednostka ma w przypadku obu zastosowanych metod 80% szans na utrzymanie wzroku dłużej niż 18 miesięcy. Różnica pojawia się na końcu, gdzie osoby leczone xenonem mają około 6% większą szansę utrzymania wzroku dłużej niż 60 miesięcy.
 
 ```{r}
 test=survdiff(Surv(time, status) ~ risk, data=diabetic, rho=1)
