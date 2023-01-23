@@ -14,11 +14,9 @@ library(dplyr)
 library(tidyr)
 ```
 
-## Wprowadzenie, eksploracyjna analiza danych
+# Wprowadzenie, eksploracyjna analiza danych
 
-
-
-Badany w niniejszym opracowaniu zbiór danych składa się z danych medycznych odnoszących się do wyników koagulacji laserowej w leczeniu ratinopatii cukrzycowej. Samo schorzenie spowodowane jest uszkodzeniem naczyń krwionośnych siatkówki oka. W celu wyleczenia schorzenia używana jest laseroteriapa siatkówki. W niniejszej pracy analizowany przez nas będzie czas przeżycia w kontekście utraty ostrości wzroku oraz wpływu danych zmiennych na spowolnienie tego procesu. Zbiór danych składa się z następujących zmiennych:
+Badany w niniejszym opracowaniu zbiór danych składa się z danych medycznych odnoszących się do wyników koagulacji laserowej w leczeniu ratinopatii cukrzycowej. Samo schorzenie spowodowane jest uszkodzeniem naczyń krwionośnych siatkówki oka. W celu wyleczenia schorzenia używana jest laseroterapia siatkówki. W niniejszej pracy analizowany przez nas będzie czas przeżycia w kontekście utraty ostrości wzroku oraz wpływu danych zmiennych na spowolnienie tego procesu. Zbiór danych składa się z następujących zmiennych:
   - **id**: Odnosi się do indywidualnego numeru badanej jednostki. W grupie badawczej jest 197 indywidualnych jednostek.
   - **laser**: typ zastosowanego rozwiązania laserowego w leczeniu. W próbie znajdują się dwie zmienne. Xenon oraz argon.
   - **age**: Wiek pacjenta w chwili wykrycia schorzenia.
@@ -26,8 +24,10 @@ Badany w niniejszym opracowaniu zbiór danych składa się z danych medycznych o
   - **trt**: Zmienna dychtomiczna odnosząca się do leczenia. 0 = brak leczenia, 1 =  leczenie laserowe.
   - **risk**: Grupy ryzyka w skali 6-12.
   - **time**: Czas w miesiącach do wystąpienia zdarzenia utraty wzroku, bądź ostatnia zaobserwowana obserwacja.
-  - **status**: Status badanego w postaci dychotomicznej. 0 = ocenzurowane, 1 = utrata wzrosku przez badaną jednostkę.
+  - **status**: Status badanego w postaci dychotomicznej. 0 = ocenzurowane, 1 = utrata wzroku przez badaną jednostkę.
 
+
+Analizę rozpoczniemy od zagłębienia się w dane i dokonania transformacji, jeśli takowe będą potrzebne.
 
 ```{r}
 diabetic <- survival::diabetic
@@ -42,15 +42,8 @@ Powyżej widoczne jest wstępne podsumowanie zmiennych zawartych w rozpatrywanym
 
 diabetic <- diabetic %>% mutate(trt = as.factor(as.character(trt)), risk = as.factor(risk))
 
-
-```
-Sprawdzenie braków danych w zbiorze.
-
-```{r}
-sapply(diabetic, function(x) sum(is.na(x)))
 ```
 
-W zbiorze danych nie występują żadne braki danych. 
 Następnie zwizualizowane zostaną rozkłady zmiennych ze zbioru.
 
 ```{r}
@@ -85,10 +78,10 @@ rm(diabetic.plot.hist)
 
 Pierwsza dwa wykresy przedstawiają częstotliwość występowowania wartośći w zmiennych **age** oraz **time**. Zauważyć możemy, iż duża liczba pacjentów ze zdiagnozowaną chorbą znajduje się pomiędzy 8 a 20 rokiem życia. Najmniej zdiagnozowano osób w wieku powyżej 55 lat. Obok widoczny jest wykres częstotliowści liczby miesięcy do momentu utraty wzroku. Najczęstszymi wartościami czasu do utraty wzroku są 3 do 4 oraz 38 do 42 miesięcy od diagnozy. 
 
-Kolejne wykresy przedstawiają rozkład dla zmiennych **eye**, **laser**, **status** oraz **trt**. W przypadku zmiennej eye mamy równą taką samą liczbę obserwacji dla prawego i lewego oka. Częstściej w leczeniu stosowany jest typ lasera xenonowego, niż argonowego. W zmiennej status przeważa liczba danych cenzurowanych (239), niż utraty wzroku (155). Ostatnia prezentowana na wykresie zmienna to trt. W tym przypadku mamy równą liczbę obserwacji z zastosowanie i nie zastosowaniem leczenia.
+Kolejne wykresy przedstawiają rozkład dla zmiennych **eye**, **laser**, **status** oraz **trt**. W przypadku zmiennej eye mamy równą taką samą liczbę obserwacji dla prawego i lewego oka. Częstściej w leczeniu stosowany jest typ lasera xenonowego, niż argonowego. W zmiennej status przeważa liczba danych cenzurowanych (239), niż utraty wzroku (155). Ostatnia prezentowana na wykresie zmienna to trt. W tym przypadku mamy równą liczbę obserwacji z zastosowaniem i nie zastosowaniem leczenia.
 Ostatni analizowany powyżej wykres prezentuje rozkład częstości występowania danej grupy ryzyka (**risk**). Widać, że najczęściej przypisywana jest wartość 9 oraz 10. Najrzadszą wartością są grupy ryzyka na poziomie 6 oraz 8. 
 
-## Wstępna analiza utraty wzroku
+# Wstępna analiza utraty wzroku
 
 Analizę rozpoczniemy od estymacji krzywej prawdopodobieństwa zachowania wzroku w stosunku do czasu przy użyciu estymatorów Kaplana-Meiera oraz Nelsona-Aalena. Przerywanymi liniami zaznaczony został 95\% przedział ufności tych estymatorów. 
 
@@ -132,8 +125,7 @@ legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black',
 ```
 
 **Krzywa zachowania wzroku zmiennej trt**
-Powyżej przedstawione zostały wykresy prawdopodbieństwa zachowania wzroku z wykorzystaniem estymatora Kaplana-Meiera oraz Nelona-Aalena. Widzimy w przypadku krzywej zachowania wzroku dla zmiennej **trt**, że prawdopodobeństwo zachowania wzroku stopniowo maleje. W przypadku estymatora Nelsona-Aalena jednostka ma 80% na utrzymanie wzroku dłużej niż przez 11 miesięcy. Estymator Kaplana-Meiera wskazuje, że jest 80% szans na utrzymanie wzroku dłużej niż 25 miesięcy. Jest bardzo duża różnica na 60 miesiącach, gdzie estymator Nelsona-Aalena wskazuje na 40% szans utrzymania wzroku dłużej niż 60 miesięcy od diagnozy, a estymator Kaplana-Meiera wskazuje 70% szans na utrzymanie wzroku dłużej niż 60 miesięcy.
-
+Powyżej przedstawione zostały wykresy prawdopodbieństwa zachowania wzroku z wykorzystaniem estymatora Kaplana-Meiera oraz Nelona-Aalena. Widzimy w przypadku krzywej zachowania wzroku dla zmiennej **trt**, że prawdopodobeństwo zachowania wzroku stopniowo maleje. Wartości obu estymatorów są bardzo podobno co potwierdza fakt, że obie linie się nakładają w obrębie grup. Zauważyć można jednak duży rozstrzał w prawdopodobieństwach zachowania wzroku dla grup z terapią oraz bez niej. Zostanie to głębiej zbadane w dalszej części pracy. 
 
 **Krzywa zachowania wzroku zmiennej age**
 Ze względu na dość chaotyczny wygląd wykresu dla zmiennej age, zdecydowaliśmy się na faktoryzację tej zmiennej poprzez podział kwantylowy. Poniżej znajdują się wykresy z estymatorami K-M oraz N-A dla tej zmiennej.
@@ -152,9 +144,9 @@ legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black',
 mod.km.laser <- survfit(Surv(time, status) ~ laser, conf.type="plain", data=diabetic)
 mod.na.laser <- survfit(Surv(time, status) ~ laser, conf.type="plain", data=diabetic, type="fleming-harrington")
 
-plot(mod.km.laser, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = c('black','grey'), main="Krzywa zachowania wzroku dla zmiennej laser")
-lines(mod.na.laser, col=c('red','pink'))
-legend(x = 'bottom', legend = c('Xenon Kaplan-Meier','Argon Kaplan-Meier','Xenon Nelson - Aalen','Argon Nelson - Aalen'), col = c('black','grey','red','pink'), pch=16)
+plot(mod.km.laser, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = 'black', main="Krzywa zachowania wzroku dla zmiennej laser")
+lines(mod.na.laser, col="red")
+legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black','red'), pch=16)
 
 mod.km.eye <- survfit(Surv(time, status) ~ eye, conf.type="plain", data=diabetic)
 mod.na.eye <- survfit(Surv(time, status) ~ eye, conf.type="plain", data=diabetic, type="fleming-harrington")
@@ -169,26 +161,18 @@ mod.na.risk <- survfit(Surv(time, status) ~ risk, conf.type="plain", data=diabet
 plot(mod.km.risk, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = 'black', main="Krzywa zachowania wzroku dla zmiennej risk")
 lines(mod.na.risk, col="red")
 legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black','red'), pch=16)
-plot(mod.km.risk, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = c('black','red','pink','grey','purple','green'), main="Krzywa zachowania wzroku dla zmiennej risk")
-legend(x = 'bottom', legend = c('risk 6','risk 8','risk 9','risk 10','risk 11','risk 12'), col = c('black','red','pink','grey','purple','green'), pch=16)
 
 ```
 
-**Krzywa zachowania wzroku zmiennej laser**
-Na wykresie widać, że krzywe w przypadku obydwóch estymatorów są do siebie zbliżone. Również w przypadku obydwóch estymatorów po 60 miesiącu wzrasta prawdopodobieństwo zachowania wzroku w przypadku użycia lasera Xenonowego.
+Na wszystkich trzech powyższych wykresach również nie widać różnic między estymatorami dla grup. Dlatego też w dalszej części pracy używać będziemy estymatorów Kaplana-Meiera.
 
-**Krzywa zachowania wzroku zmiennej eye**
-Na wykresie widać, że krzywe dla oka są takie same niezależnie od użytego estymatora.
-
-**Krzywa zachowania wzroku zmiennej risk**
-Najmniejsze prawdopodobieństwo zachowania wzroku cechuje obserwacje z grupy ryzyka 10 i 12  w całym okresie badania. Największe prawdopodobieństwo zachowania wzorku wskazuje natomiast, właściwie, grupa 6 ryzyka.
-
+# Testy krzywych przetrwania
 
 Po wizualnej inspekcji przyszedł czas na formalne testowanie założeń. Użyte zostaną testy Peto-Peto, log-rank, modyfikacja Andersena testu Peto-Peto oraz test Fleminga-Harringtona dla różnych wag. Mamy tutaj na uwadze, że tylko jedna krzywa nie przecinała się między wariantami - krzywa dla zmiennej `trt`. Dla zmiennych `laser` oraz `eye` użyte zostaną wartości z testów Renyi a dla zmiennych `risk` i `ageCat` testy trendów, gdyż są to zmienne na skali porządkowej.
 
 ```{r}
 km_by_trt <- survfit(Surv(time, status) ~ trt, conf.type="plain", data=diabetic)
-plot(km_by_trt, col=c("blue", "red"),xlab="Czas",ylab="Prawdopodobieństwo przeżycia")
+plot(km_by_trt, col=c("blue", "red"),xlab="Czas",ylab="Prawdopodobieństwo zachowania wzroku", main="Krzywa zachowania wzroku dla grup zmiennej trt")
 legend(10,0.3,c("no treatment", "laser"),lty=1, col=c("blue", "red"),bty="n")
 
 test=survdiff(Surv(time, status) ~ trt, data=diabetic, rho=1)
@@ -199,7 +183,7 @@ test=survdiff(Surv(time, status) ~ trt, data=diabetic, rho=0)
 print("Wyniki testu log-rank")
 test 
 
-t = ten(mod.km.trt)
+t = ten(km_by_trt)
 comp(t,p=c(0,1,1,0.5,0.5),q=c(1,0,1,0.5,2))
 a = attr(t, "lrt")
 
@@ -207,10 +191,12 @@ print("Wyniki pozostałych testów")
 cbind(a$W, a$pNorm)
 ```
 
-Powyżej przedstawiony został wpływ leczenia (zmienna **trt**) na wyniki prawdopobieństwa utraty wzroku przez badaną jednostkę. Badana jednostka ma 80% szans na utrzymanie wzroku do 15 miesięcy bez leczenia. W przypadku zastosowania leczenia laserowego badana jednostka ma 80% szans na utrzymanie wzroku dłużej niż 20 miesięcy. Po wynikach testu możemy również zauważyć różnicę rozkładów. Test Log Rank wskazuje na poziomie istotności 0,05 na odrzucenie hipotezy zerowej na rzecz alternatywnej mówiącej o różnicy rozkładów, co oznacza, że jest znaczna różnica pomiędzy wynikami braku zabiegów, a przyjmowaniem zabiegu laserowego.
+Powyżej przedstawiony został wpływ leczenia (zmienna **trt**) na wyniki prawdopobieństwa utraty wzroku przez badaną jednostkę. Badana jednostka ma 80% szans na utrzymanie wzroku do 15 miesięcy bez leczenia. W przypadku zastosowania leczenia laserowego badana jednostka ma 80% szans na utrzymanie wzroku dłużej niż 20 miesięcy. Po wynikach testu możemy również zauważyć różnicę rozkładów. Wszystkie testy wskazują (na poziomie istotności 0,05) na odrzucenie hipotezy zerowej na rzecz alternatywnej mówiącej o różnicy rozkładów, co oznacza, że jest znaczna różnica pomiędzy czasem przetrwania dla pacjentów bez terapii, a pacjentami, którzy poddali się terapii.
 
 ```{r}
-
+km_by_ageCat <- survfit(Surv(time, status) ~ ageCat, conf.type="plain", data=diabetic)
+plot(km_by_ageCat, col=c("blue", "red", "green", "black"),xlab="Czas",ylab="Prawdopodobieństwo zachowania wzroku", main="Krzywa zachowania wzroku dla grup zmiennej ageCat")
+legend(10,0.3,c("[1,10]", "(10,16]", "(16,30]", "(30,58]"),lty=1, col=c("blue", "red", "green", "black"),bty="n")
 
 test=survdiff(Surv(time, status) ~ ageCat, data=diabetic, rho=1)
 print("Wyniki testu Peto-Peto")
@@ -220,21 +206,21 @@ test=survdiff(Surv(time, status) ~ ageCat, data=diabetic, rho=0)
 print("Wyniki testu log-rank")
 test 
 
-t = ten(mod.km.ageCat)
+t = ten(km_by_ageCat)
 comp(t,p=c(0,1,1,0.5,0.5),q=c(1,0,1,0.5,2))
 a=attr(t, 'tft')
 
 print("Wyniki pozostałych testów")
-cbind(a$W, a$tft$pNorm)
+cbind(a$tft$W, a$tft$pNorm)
 
 ```
 
-Wyniki testów dla zmiennej kategoryzowanej Age wskazują, że nie występuje istotna różnica w przeżywalności jednostek w poszczególnych grupach wiekowych.
+Wyniki testów oraz wygląd wykresu dla zmiennej skategoryzowanej Age wskazują, że nie występuje istotna różnica w prawdopodobieństwie zachowania wzroku jednostek w poszczególnych grupach wiekowych.
 
 ```{r}
 
 km_by_eye <- survfit(Surv(time, status) ~ eye, conf.type="plain", data=diabetic)
-plot(km_by_eye, col=c("blue", "red"),xlab="Czas",ylab="Prawdopodobieństwo przeżycia")
+plot(km_by_eye, col=c("blue", "red"),xlab="Czas",ylab="Prawdopodobieństwo zachowania wzroku", main="Krzywa zachowania wzroku dla grup zmiennej eye")
 legend(10,0.3,c("left", "right"),lty=1, col=c("blue", "red"),bty="n")
 
 
@@ -246,7 +232,7 @@ test=survdiff(Surv(time, status) ~ eye, data=diabetic, rho=0)
 print("Wyniki testu log-rank")
 test  
 
-t = ten(mod.km.eye)
+t = ten(km_by_eye)
 comp(t,p=c(0,1,1,0.5,0.5),q=c(1,0,1,0.5,2))
 a = attr(t, "sup")
 
@@ -259,7 +245,7 @@ Na powyżej przedstawionym wykresie przedstawiono prawdopodobieństwo zachowania
 
 ```{r}
 km_by_laser <- survfit(Surv(time, status) ~ laser, conf.type="plain", data=diabetic)
-plot(km_by_laser, col=c("blue", "red"),xlab="Czas",ylab="Prawdopodobieństwo przeżycia")
+plot(km_by_laser, col=c("blue", "red"),xlab="Czas",ylab="Prawdopodobieństwo zachowania wzroku", main="Krzywa zachowania wzroku dla grup zmiennej laser")
 legend(10,0.3,c("xenon", "argon"),lty=1, col=c("blue", "red"),bty="n")
 
 test=survdiff(Surv(time, status) ~ laser, data=diabetic, rho=1)
@@ -270,7 +256,7 @@ test=survdiff(Surv(time, status) ~ laser, data=diabetic, rho=0)
 print("Wyniki testu log-rank")
 test  
 
-t = ten(mod.km.laser)
+t = ten(km_by_laser)
 comp(t,p=c(0,1,1,0.5,0.5),q=c(1,0,1,0.5,2))
 a = attr(t, "sup")
 
@@ -278,13 +264,12 @@ print("Wyniki pozostałych testów")
 cbind(a$W, a$pSupBr)
 ```
 
-Powyżej przedstawione zostało sprawdzenie prawdopodobieństwa zachowania wzroku w przypadku zastosowania dwóch różnych typów laserów w terapii. Po wynikach testów oraz wizualizacji widzimy, iż grupy zachowują się bardzo podobnie. W teście log rank na poziomie istotności 0,05 nie mamy podstaw do odrzucenia hipotezy zerowej mówiącej o nieistotnej róznicy w rozkładach grup. Badana jednostka ma w przypadku obu zastosowanych  metod 80% szans na utrzymanie wzroku dłużej niż 18 miesięcy. Jedyna zauważalna różnica pomiędzy krzywymi pojawia się pod koniec badania,kiedy to oczy leczone xenonem mają około 6% większą szansę utrzymania wzroku dłużej niż 60 miesięcy.
+Powyżej przedstawione zostało sprawdzenie prawdopodobieństwa zachowania wzroku w przypadku zastosowania dwóch różnych typów laserów w terapii. Po wynikach testów oraz wizualizacji widzimy, iż grupy zachowują się bardzo podobnie. W testach, na poziomie istotności 0,05 nie mamy podstaw do odrzucenia hipotezy zerowej mówiącej o nieistotnej róznicy w rozkładach grup. Badana jednostka ma w przypadku obu zastosowanych  metod 80% szans na utrzymanie wzroku dłużej niż 18 miesięcy. Jedyna zauważalna różnica pomiędzy krzywymi pojawia się pod koniec badania, kiedy to oczy leczone xenonem mają około 6% większą szansę utrzymania wzroku dłużej niż 60 miesięcy.
 
 ```{r}
-
 km_by_risk <- survfit(Surv(time, status) ~ risk, conf.type="plain", data=diabetic)
 plot(km_by_risk, col=c("blue", "red", "green"
-, "purple","grey", 'black'),xlab="Czas",ylab="Prawdopodobieństwo przeżycia")
+, "purple","grey", 'black'),xlab="Czas",ylab="Prawdopodobieństwo zachowania wzroku", main="Krzywa zachowania wzroku dla grup zmiennej risk")
 legend(x='bottom',0.3,c("6", "8", "9", "10", "11", "12"),lty=1, col=c("blue", "red", "green"
 , "purple","grey", 'black'),bty="n")
 
@@ -296,7 +281,7 @@ test=survdiff(Surv(time, status) ~ risk, data=diabetic, rho=0)
 print("Wyniki testu log-rank")
 test  
 
-t = ten(mod.km.risk)
+t = ten(km_by_risk)
 comp(t,p=c(0,1,1,0.5,0.5),q=c(1,0,1,0.5,2))
 a = attr(t, "tft")
 
@@ -304,36 +289,87 @@ print("Wyniki pozostałych testów")
 cbind(a$tft$W, a$tft$pNorm)
 ```
 
-Na podstawie wyników testów możemy stwierdzić, iż na poziomie istoności 0,05 odrzucamy hipotezę zerową mówiącą o równych sobie rozkładach prawdopodobieństwa grup na rzecz hipotezy alternatywnej. Badane przez nas grupy mają rożne rozkłady przeżycia. Zauważyć możemy, iż nakrótszy okres przeżycia będzie w grupie 10. Najdłużysz będzie w najniższej grupie 6.
+Na podstawie wyników testów możemy stwierdzić, iż na poziomie istoności 0,05 odrzucamy hipotezę zerową mówiącą o równych sobie rozkładach prawdopodobieństwa grup na rzecz hipotezy alternatywnej. Badane przez nas grupy mają rożne rozkłady przeżycia. Zauważyć możemy, iż nakrótszy okres przeżycia będzie w grupie 10. Najdłuższy będzie w najniższej grupie ryzyka - 6.
 
+## Podsumowanie wyników testów
 
+Na podstawie wyników testów (oraz pomocniczno, wykresów) stwierdzamy, że jedną zmienną, która wpływa na prawdopodobieństwo zachowania wzroku jest zmienna `trt`, mówiąca o poddaniu się terapii wzroku. Pozostałe zmienne nie charakteryzują się różnicami w krzywych przetrwania.
 
-Podsumowanie...
+# Model Coxa
+
+Przejdziemy teraz do estymacji modelu Coxa, które pozwolą nam udzielić odpowiedzi na pytanie, jak bardzo dane zmienne wpływają na prawdopodobieństwo zachowania wzroku. Zanim jednak stworzymy pierwszy model, przekształcimy nieco zmienne `age` oraz `risk` w celu ułatwienia późniejszej interpretacji parametrów modelu - przekonwertujemy je na zmienne dychotomiczne. Wiek podzielimy względem mediany (dla wieku większego od mediany nowa zmienna `age_fct` przyjmie wartość 1, 0 dla niższych), a ryzyko względem wartości 10 - wartości większe lub równe 10 przyjmą wartość 1, a mniejsze 0. Wyznaczymy dla tych zmiennych również krzywe przetrwania i sprawdzimy różnicę między krzywymi w grupach za pomocą odpowiednich testów Renyi.
+
+## Transformacje zmiennych
 
 ```{r}
-Cox=coxph(Surv(time, status)~laser+age+eye+trt+risk, data=diabetic)
+diabetic$age_fct <- factor((diabetic$age>median(diabetic$age))*1)
+
+km_by_age_fct <- survfit(Surv(time, status) ~ age_fct, conf.type="plain", data=diabetic)
+plot(km_by_age_fct, col=c("blue", "red"),xlab="Czas",ylab="Prawdopodobieństwo zachowania wzroku", main="Krzywa zachowania wzroku dla grup zmiennej age_fct")
+legend(10,0.3,c("<= median", "> median"),lty=1, col=c("blue", "red"),bty="n")
+
+test=survdiff(Surv(time, status) ~ age_fct, data=diabetic, rho=1)
+print("Wyniki testu Peto-Peto")
+test
+
+test=survdiff(Surv(time, status) ~ age_fct, data=diabetic, rho=0)
+print("Wyniki testu log-rank")
+test  
+
+t = ten(km_by_age_fct)
+comp(t,p=c(0,1,1,0.5,0.5),q=c(1,0,1,0.5,2))
+a = attr(t, "sup")
+
+print("Wyniki pozostałych testów")
+cbind(a$W, a$pSupBr)
+```
+
+Dla tej zmiennej, wyniki wszystkich wariantów testów (na poziomie istotności 0.05) wskazują na brak istnienia istotnej statystycznie różnicy w czasie przetrwania między wiekiem poniżej mediany a wiekiem powyżej mediany.
+
+```{r}
+diabetic$risk_fct <- factor((as.numeric(diabetic$risk)>=4)*1)
+
+km_by_risk_fct <- survfit(Surv(time, status) ~ risk_fct, conf.type="plain", data=diabetic)
+plot(km_by_risk_fct, col=c("blue", "red"),xlab="Czas",ylab="Prawdopodobieństwo zachowania wzroku", main="Krzywa zachowania wzroku dla grup zmiennej risk_fct")
+legend(10,0.3,c("< 10", "> 10"),lty=1, col=c("blue", "red"),bty="n")
+
+test=survdiff(Surv(time, status) ~ risk_fct, data=diabetic, rho=1)
+print("Wyniki testu Peto-Peto")
+test
+
+test=survdiff(Surv(time, status) ~ risk_fct, data=diabetic, rho=0)
+print("Wyniki testu log-rank")
+test  
+
+t = ten(km_by_risk_fct)
+comp(t,p=c(0,1,1,0.5,0.5),q=c(1,0,1,0.5,2))
+a = attr(t, "lrt")
+
+print("Wyniki pozostałych testów")
+cbind(a$W, a$pNorm)
+```
+
+Okazało się, że krzywe te nie przecinają się, więc wykonaliśmy warianty testu Wilcoxona. Mówią one nam, że istnieje istotna statystycznie różnica w czasie przeżycia między grupą niskiego ryzyka (poniżej 10), a grupą wysokiego ryzyka (większe bądź równe 10). Z wykresu wynika, że pacjenci w grupie podwyższonego ryzyka mieli mniejsze prawdopodobieństwo zachowania wzroku niż pacjenci w grupie niższego ryzyka. 
+
+## Estymacja pierwszego modelu
+
+Wyestymujemy pierwszy model, do którego wejdą wszystkie zmienne (zmienne `age` i `risk` będą sfaktoryzowane). Następnie, przy użyciu funkcji stepAIC wybrana zostanie model o takich parametrach, które minimalizują wartość kryterium informacyjnego Akaike'a. W razie występowania w modelu nieistotnych statystycznie zmiennych, usuniemy je pozostawiając same istotne statystycznie predyktory.
+
+```{r}
+Cox=coxph(Surv(time, status)~laser+age_fct+eye+trt+risk_fct, data=diabetic)
 summary(Cox)
 library(MASS)
 stepAIC(Cox,direction="backward")
 ```
-#Do weryfikacji
 
-Po wynikach modelu proporcjonalnego hazardu Coxa widzimy, że istone zmienne do naszego modelu na poziomie istotności 0,05 to grupa 10 ryzyka oraz przeprowadzanie badania **trt**. 
-
-#Do opisania parametry modelu. 
-
-Ucięty AICem Cox
+Po zastosowaniu minimalizowania kryterium AIC okazało się, że wybrany został model początkowy. Zawiera on jednak trzy nieistotne statystycznie zmienne (a raczej nieistotne statystycznie różnice między poziomami zmiennych) `age_fct`, `eye` oraz `laser`. Usuniemy te zmienne z modelu.
 
 ```{r}
-Cox=coxph(Surv(time, status)~eye + trt + risk, data=diabetic)
+Cox=coxph(Surv(time, status) ~ risk_fct + trt, data=diabetic)
 summary(Cox)
 ```
 
-Miary R-kwadrat dla Coxa
-
-```{r}
-rsq(Cox)
-```
+Powyżej znajdują się wyestymowane parametry modelu Coxa z dwoma istotnymi predyktorami. Zanim przejdziemy do interpretacji parametrów, sprawdzimy założenie o proporcjonalności oraz usuniemy wartości odstające.
 
 Weryfikacja założenia o proporcjonalności, H0 - hazard jest proporcjonalny dla danej zmiennej w czasie, na wykresach linia chyba musi być w miarę prosta (wykres liniowy albo stały)
 
@@ -350,15 +386,15 @@ print(Prop)
 
 reszty=resid(Cox, type="scaledsch")
 Time=as.numeric(rownames(reszty))
-zmienne=c('eye','trt','risk')
-for (i in 1:3) 
+zmienne=c('trt','risk')
+for (i in 1:2) 
 {plot(log(Time), reszty[,i], xlab="ln(Czas)",main=zmienne[i],
       ylab="Skalowane reszty Schoenfelda",pch=20, cex=0.7)
   lines( smooth.spline(log(Time), reszty[,i] ), lwd=3 )
 }
 ```
 
-Wyrzucenie obserwacji o dużej dewiancji (dewiancja wyższa niż 3 odchylenia standardowe)
+Z powyższych testów wynika, że dla wszystkich wariantów transformacji czasów przetrwania funkcja skumulowanego hazardu jest proporcjonalna dla zmiennych w czasie. Wykresy skalowanych reszt Schoenfelda potwierdzają ten fakt. Przystąpimy teraz do wyrzucenia ze zbioru wartości odstających, wyliczonych na podstawie reszt z wyestymowanego wcześniej modelu. Posłużymy się tutaj odchyleniami standardowymi od wartości pradziwych oraz statystyką dfbeta, która służy do wykrywania wpływowych obserwacji.
 
 ```{r}
 deviance <- residuals(Cox,type="deviance")
@@ -369,25 +405,28 @@ diabetic$deviance <- deviance
 to.del.1 <- which(diabetic$deviance>3)
 ```
 
-Wyrzucenie obserwacji na podstawie dfbeta (nwm co to)
+Okazuje się, że w naszym modelu żadne reszty obserwacji nie przekraczają 3 odchyleń standardowych, więc pozostawiliśmy wszystkie obserwacje. Następnie przejdziemy do usuwania obserwacji przy pomocy statystyki dfbeta. Wartość graniczną przyrostu oceny parametru ustaliliśmy tutaj na wartość bezwzględną z 0.01 dla obu zmiennych. 
 
 ```{r}
 df.beta <- residuals(Cox,type="dfbeta")
 n <- dim(df.beta)[1]
 obs.nr <- c(1:n)
-for (j in 1:3) {
+for (j in 1:2) {
   plot(obs.nr, df.beta[,j], xlab="Numer jednostki", ylab="Przyrost oceny parametru", main=zmienne[j])
 }
-to.del.2 <- which(df.beta[,1] < (-0.01))
+to.del.2 <- which(abs(df.beta[,1]) > (0.01))
 to.del.3 <- which(abs(df.beta[,2])>(0.01))
 ```
 
-Ostateczny model
+Bazując na tym kryterium, usuniętych zostało 121 obserwacji. Jesteśmy więc już gotowi na estymację ostatecznego modelu i interpretację jego parametrów.
 
 ```{r}
 c <- sort(unique(c(to.del.1, to.del.2, to.del.3)))
 diabetic.red <- diabetic[-c,] 
-Cox2 <- coxph(Surv(time, status)~eye + trt + risk, data=diabetic.red)
-stepAIC(Cox2,direction="backward")
+Cox2 <- coxph(Surv(time, status) ~ trt + risk_fct, data=diabetic.red)
+summary(Cox2)
 ```
 
+Ujemny współczynnik dla zmiennej `trt` przy wariancie 1 oznacza, że poddanie się terapii redukuje hazard (czyli ryzyko utraty wzroku) o 99\% w stosunku do nie poddawania się terapii, przy niezmienionej grupie ryzyka. Współczynnik przy zmiennej `risk_fct` oznacza, że bycie w grupie wysokiego ryzyka zwiększa hazard (czyli ryzyko utraty wzroku) o 1140\% w stosunku do grupy niższego ryzyka, przy niezmienionej wartości zmiennej `trt`.  
+
+Podsumowując całą pracę - na podstawie danych wejściowych udało nam się stwierdzić, że poddanie się terapii zwiększa szansę na zachowanie wzroku w stosunku do grupy nie poddającej się terapii, a grupa wysokiego ryzyka cechuje się bardzo wielką dysproporcją w szansach na zachowanie wzroku - na korzyść grupy mniejszego ryzyka.
