@@ -18,7 +18,7 @@ library(tidyr)
 
 
 
-Badany w niniejszym opracowaniu zbiór danych składa się z danych leczniczysz odnoszących się do wyników koagulacji laswerowej w leczeniu ratinopatii cukrzycowej. Samo schorzenie spowodowane jest uszkodzeniem naczyń krwionośnych siatkówki oka. W celu wyleczenia schorzenia używana jest laseroteriapa siatkówki. W niniejszej pracy analizowana przez nas będzie czas przeżycia w kontekście utraty ostrości wzrosku oraz wpływu danych zmiennych na przedłużanie tego procesu. W pliku zajdziemy następujące inforamcje:
+Badany w niniejszym opracowaniu zbiór danych składa się z danych medycznych odnoszących się do wyników koagulacji laserowej w leczeniu ratinopatii cukrzycowej. Samo schorzenie spowodowane jest uszkodzeniem naczyń krwionośnych siatkówki oka. W celu wyleczenia schorzenia używana jest laseroteriapa siatkówki. W niniejszej pracy analizowany przez nas będzie czas przeżycia w kontekście utraty ostrości wzroku oraz wpływu danych zmiennych na spowolnienie tego procesu. Zbiór danych składa się z następujących zmiennych:
   - **id**: Odnosi się do indywidualnego numeru badanej jednostki. W grupie badawczej jest 197 indywidualnych jednostek.
   - **laser**: typ zastosowanego rozwiązania laserowego w leczeniu. W próbie znajdują się dwie zmienne. Xenon oraz argon.
   - **age**: Wiek pacjenta w chwili wykrycia schorzenia.
@@ -36,7 +36,7 @@ diabetic <- survival::diabetic
 summary(diabetic)
 ```
 
-Powyżej widoczne jest wstępne podsumowanie zmiennych zawartych w rozpatrywanym przez nas zbiorze danych. Widać, że w zbiorze danych nie występują wartości NA oznaczające brak danych. R zinterpretował zmienne `trt` oraz `risk` jako zmienne numeryczne, gdy one tak naprawdę są zmiennymi typu factor. Poniższy kod zamienia typy tych zmiennych na prawidłowe.
+Powyżej widoczne jest wstępne podsumowanie zmiennych zawartych w rozpatrywanym przez nas zbiorze danych. Widać, że w zbiorze danych nie występują wartości NA oznaczające brak danych. R zinterpretował zmienne `trt` oraz `risk` jako zmienne numeryczne, jednakże są to zmienne jakościowe(typu factor). Poniższy kod kategoryzuje zmienne.
 
 ```{r}
 
@@ -50,7 +50,8 @@ Sprawdzenie braków danych w zbiorze.
 sapply(diabetic, function(x) sum(is.na(x)))
 ```
 
-Widać, że nie występują braki w naszych danych. Spojrzymy teraz również na rozkłady tych zmiennych, już po kategoryzacji.
+W zbiorze danych nie występują żadne braki danych. 
+Następnie zwizualizowane zostaną rozkłady zmiennych ze zbioru.
 
 ```{r}
 
@@ -82,13 +83,14 @@ rm(diabetic.plot.bar)
 rm(diabetic.plot.hist)
 ```
 
-Na powyższych wykresach dokonaliśmy wizualizacji badanych zmiennych. W przypadku pierwszego z nich zauważyć może częstotliwość występowowania zmiennej **age** oraz **time**. Zauważyć możemy, iż duża ilość pacjentów diagnozowana jest w stosunkowo młodym wieku, gdyż pomiędzy około 9 a 20 rokiem życia. Najmniej diagnozuje się to w wieku powyżej 55 roku życia badanej jednostki. Jednocześnie obok widoczny jest wykres częstotliowści czasu do utraty wzroku. Najczęściej występują zmienne time w okolicy pierwszych 10 miesięcy oraz od 40 do 50 miesięcy.
-Kolejne wykresy przedstawiają rozkłąd dla zmiennych **eye**, **laser**, **status** oraz **trt**. W przypadku zmiennej eye mamy równą ilość badanych zmiennych. Ale możemy zwrócić na znaczną przewagę użycia xenonu, zamiast argonu w zmiennych laser. Dodatkowo widzimy, iż w zmiennej status przeważa liczba danych cenzurowanych (239) niż utraty wzroku (155). Ostania prezentowana na wykresie zmienna to trt. W tym przypadku mamy równą liczbę zmiennych.
-Ostatni analizowany powyżej wykres prezentuje rozkład częstości występowania zmiennej **risk**. Widać, że najczęściej przypisywana jest wartość 9 oraz 10. Najmniej jest niskiego ryzyka na poziomie 6 oraz 8. 
+Pierwsza dwa wykresy przedstawiają częstotliwość występowowania wartośći w zmiennych **age** oraz **time**. Zauważyć możemy, iż duża liczba pacjentów ze zdiagnozowaną chorbą znajduje się pomiędzy 8 a 20 rokiem życia. Najmniej zdiagnozowano osób w wieku powyżej 55 lat. Obok widoczny jest wykres częstotliowści liczby miesięcy do momentu utraty wzroku. Najczęstszymi wartościami czasu do utraty wzroku są 3 do 4 oraz 38 do 42 miesięcy od diagnozy. 
+
+Kolejne wykresy przedstawiają rozkład dla zmiennych **eye**, **laser**, **status** oraz **trt**. W przypadku zmiennej eye mamy równą taką samą liczbę obserwacji dla prawego i lewego oka. Częstściej w leczeniu stosowany jest typ lasera xenonowego, niż argonowego. W zmiennej status przeważa liczba danych cenzurowanych (239), niż utraty wzroku (155). Ostatnia prezentowana na wykresie zmienna to trt. W tym przypadku mamy równą liczbę obserwacji z zastosowanie i nie zastosowaniem leczenia.
+Ostatni analizowany powyżej wykres prezentuje rozkład częstości występowania danej grupy ryzyka (**risk**). Widać, że najczęściej przypisywana jest wartość 9 oraz 10. Najrzadszą wartością są grupy ryzyka na poziomie 6 oraz 8. 
 
 ## Wstępna analiza utraty wzroku
 
-Analizę rozpoczniemy od estymacji krzywej prawdopodobieństwa zachowania wzroku w stosunku do czasu dla estymatorów Kaplana-Meiera oraz Nelsona-Aalena. Przerywanymi liniami zaznaczony został 95\% przedział ufności tych estymatorów. 
+Analizę rozpoczniemy od estymacji krzywej prawdopodobieństwa zachowania wzroku w stosunku do czasu przy użyciu estymatorów Kaplana-Meiera oraz Nelsona-Aalena. Przerywanymi liniami zaznaczony został 95\% przedział ufności tych estymatorów. 
 
 ```{r}
 mod.1 <- survfit(Surv(time, status) ~ 1, conf.type="plain", data=diabetic)
@@ -99,7 +101,7 @@ lines(mod.2, col="red", pch=16)
 legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black','red'), pch=16)
 ```
 
-Na powyższym wykresie nie zauważyliśmy dużych różnic pomiędzy estymatorami. Bardzo szybko (po około 2 miesiącach) prawdopodobieństwo zachowania wzroku spada poniżej 1 i utrzymuje ten spadek aż do poziomu około 60\% na którym to utrzymuje się od 60 miesięcy aż do 75 miesięcy. Spojrzymy teraz na wykresy skumulowanego hazardu.
+Na powyższym wykresie nie zauważyliśmy dużych różnic pomiędzy obydwoma estymatorami. Bardzo szybko (po około 2 miesiącach) prawdopodobieństwo zachowania wzroku spada poniżej 1 i utrzymuje ten spadek aż do poziomu około 60\% na którym to utrzymuje się od 60 miesięcy aż do 75 miesięcy. Spojrzymy teraz na wykresy skumulowanego hazardu.
 
 ```{r}
 plot(mod.1, fun="cumhaz", xlab="Czas", ylab="Hazard skumulowany", col = 'black')
@@ -110,7 +112,7 @@ rm(mod.1)
 rm(mod.2)
 ```
 
-Oferują nam one bardzo podobną interpretację jak wykresy prawdopodobieństw. Szansa na utratę wzroku bardzo szybko (znów po około 2 miesiącach) było większe od 0 i w dość równomierny sposób wzrastała do poziomu około 0.6, na którym to utrzymywała się od około 60 miesięcy do końca osi X czyli 75 miesięcy. Przejdziemy teraz do wyznaczenia krzywych dla predyktorów zawartych w naszym zbiorze danych - zmiennych `trt`, `age`, `laser`, `eye` oraz `risk`.
+Oferują nam one bardzo podobną interpretację jak wykresy prawdopodobieństw. Szansa na utratę wzroku bardzo szybko (znów po około 2 miesiącach) było większe od 0 i w dość równomierny sposób wzrastała do poziomu około 0.6, na którym to utrzymywała się od około 60 miesięcy do końca,czyli 75 miesięcy. Przejdziemy teraz do wyznaczenia krzywych dla predyktorów zawartych w naszym zbiorze danych - zmiennych `trt`, `age`, `laser`, `eye` oraz `risk`.
 
 ```{r}
 mod.km.trt <- survfit(Surv(time, status) ~ trt, conf.type="plain", data=diabetic)
@@ -127,12 +129,32 @@ plot(mod.km.age, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col 
 lines(mod.na.age, col="red")
 legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black','red'), pch=16)
 
+```
+
+**Krzywa zachowania wzroku zmiennej trt**
+Powyżej przedstawione zostały wykresy prawdopodbieństwa zachowania wzroku z wykorzystaniem estymatora Kaplana-Meiera oraz Nelona-Aalena. Widzimy w przypadku krzywej zachowania wzroku dla zmiennej **trt**, że prawdopodobeństwo zachowania wzroku stopniowo maleje. W przypadku estymatora Nelsona-Aalena jednostka ma 80% na utrzymanie wzroku dłużej niż przez 11 miesięcy. Estymator Kaplana-Meiera wskazuje, że jest 80% szans na utrzymanie wzroku dłużej niż 25 miesięcy. Jest bardzo duża różnica na 60 miesiącach, gdzie estymator Nelsona-Aalena wskazuje na 40% szans utrzymania wzroku dłużej niż 60 miesięcy od diagnozy, a estymator Kaplana-Meiera wskazuje 70% szans na utrzymanie wzroku dłużej niż 60 miesięcy.
+
+
+**Krzywa zachowania wzroku zmiennej age**
+Ze względu na dość chaotyczny wygląd wykresu dla zmiennej age, zdecydowaliśmy się na faktoryzację tej zmiennej poprzez podział kwantylowy. Poniżej znajdują się wykresy z estymatorami K-M oraz N-A dla tej zmiennej.
+
+```{r}
+diabetic$ageCat <- quantcut(diabetic$age,q=4)
+
+mod.km.ageCat <- survfit(Surv(time, status) ~ ageCat, conf.type="plain", data=diabetic)
+mod.na.ageCat <- survfit(Surv(time, status) ~ ageCat, conf.type="plain", data=diabetic, type="fleming-harrington")
+
+plot(mod.km.ageCat, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = 'black', main="Krzywa zachowania wzroku dla zmiennej ageCat (po faktoryzacji)")
+lines(mod.na.ageCat, col="red")
+legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black','red'), pch=16)
+```
+```{r}
 mod.km.laser <- survfit(Surv(time, status) ~ laser, conf.type="plain", data=diabetic)
 mod.na.laser <- survfit(Surv(time, status) ~ laser, conf.type="plain", data=diabetic, type="fleming-harrington")
 
-plot(mod.km.laser, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = 'black', main="Krzywa zachowania wzroku dla zmiennej laser")
-lines(mod.na.laser, col="red")
-legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black','red'), pch=16)
+plot(mod.km.laser, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = c('black','grey'), main="Krzywa zachowania wzroku dla zmiennej laser")
+lines(mod.na.laser, col=c('red','pink'))
+legend(x = 'bottom', legend = c('Xenon Kaplan-Meier','Argon Kaplan-Meier','Xenon Nelson - Aalen','Argon Nelson - Aalen'), col = c('black','grey','red','pink'), pch=16)
 
 mod.km.eye <- survfit(Surv(time, status) ~ eye, conf.type="plain", data=diabetic)
 mod.na.eye <- survfit(Surv(time, status) ~ eye, conf.type="plain", data=diabetic, type="fleming-harrington")
@@ -147,32 +169,22 @@ mod.na.risk <- survfit(Surv(time, status) ~ risk, conf.type="plain", data=diabet
 plot(mod.km.risk, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = 'black', main="Krzywa zachowania wzroku dla zmiennej risk")
 lines(mod.na.risk, col="red")
 legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black','red'), pch=16)
-
+plot(mod.km.risk, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = c('black','red','pink','grey','purple','green'), main="Krzywa zachowania wzroku dla zmiennej risk")
+legend(x = 'bottom', legend = c('risk 6','risk 8','risk 9','risk 10','risk 11','risk 12'), col = c('black','red','pink','grey','purple','green'), pch=16)
 
 ```
 
-**Krzywa zachowania wzroku zmiennej trt**
-Powyżej przedstawione zostały wykresy prawdopodbieństwa zachowania wzroku z wykorzystaniem estymatora Kaplana-Meiera oraz Nelona-Aalena. Widzimy w przypadku krzywej zachowania wzroku dla zmiennej **trt**, że prawdopodobeństwo zachowania wzroku stopniowo maleje. W przypadku estymatora Nelsona-Aalena jednostka ma 80% na utrzymanie wzroku dłużej niż przez 11 miesięcy. Estymator Kaplana-Meiera wskazuje, że jest 80% szans na utrzymanie wzroku dłużej niż 25 miesięcy. Jest bardzo duża różnica na 60 miesiącach, gdzie estymator Nelsona-Aalena wskazuje na 40% szans utrzymania wzroku dłużej niż 60 miesięcy od diagnozy, a estymator Kaplana-Meiera wskazuje 70% szans na utrzymanie wzroku dłużej niż 60 miesięcy.
+**Krzywa zachowania wzroku zmiennej laser**
+Na wykresie widać, że krzywe w przypadku obydwóch estymatorów są do siebie zbliżone. Również w przypadku obydwóch estymatorów po 60 miesiącu wzrasta prawdopodobieństwo zachowania wzroku w przypadku użycia lasera Xenonowego.
+
+**Krzywa zachowania wzroku zmiennej eye**
+Na wykresie widać, że krzywe dla oka są takie same niezależnie od użytego estymatora.
+
+**Krzywa zachowania wzroku zmiennej risk**
+Najmniejsze prawdopodobieństwo zachowania wzroku cechuje obserwacje z grupy ryzyka 10 i 12  w całym okresie badania. Największe prawdopodobieństwo zachowania wzorku wskazuje natomiast, właściwie, grupa 6 ryzyka.
 
 
-**Krzywa zachowania wzroku zmiennej age**
-Ze względu na dość chaotyczny wygląd wykresu dla zmiennej age, zdecydowaliśmy się na faktoryzację tej zmiennej poprzez podział kwantylowy. Poniżej znajdują się wykresy z estymatorami K-M oraz N-A dla tej zmiennej.
-
-
-```{r}
-diabetic$ageCat <- quantcut(diabetic$age,q=4)
-
-mod.km.ageCat <- survfit(Surv(time, status) ~ ageCat, conf.type="plain", data=diabetic)
-mod.na.ageCat <- survfit(Surv(time, status) ~ ageCat, conf.type="plain", data=diabetic, type="fleming-harrington")
-
-plot(mod.km.ageCat, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = 'black', main="Krzywa zachowania wzroku dla zmiennej ageCat (po faktoryzacji)")
-lines(mod.na.ageCat, col="red")
-legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black','red'), pch=16)
-```
-
-Interpretacja...
-
-Po wizualnej inspekcji przyszedł czas na formalne testy. Użyte zostaną testy Peto-Peto, log-rank, modyfikacja Andersena testu Peto-Peto oraz test Fleminga-Harringtona dla różnych wag. Mamy tutaj na uwadze, że tylko jedna krzywa nie przecinała się między wariantami - krzywa dla zmiennej `trt`. Dla zmiennych `laser` oraz `eye` użyte zostaną wartości z testów Renyi a dla zmiennych `risk` i `ageCat` testy trendów, gdyż są to zmienne na skali porządkowej.
+Po wizualnej inspekcji przyszedł czas na formalne testowanie założeń. Użyte zostaną testy Peto-Peto, log-rank, modyfikacja Andersena testu Peto-Peto oraz test Fleminga-Harringtona dla różnych wag. Mamy tutaj na uwadze, że tylko jedna krzywa nie przecinała się między wariantami - krzywa dla zmiennej `trt`. Dla zmiennych `laser` oraz `eye` użyte zostaną wartości z testów Renyi a dla zmiennych `risk` i `ageCat` testy trendów, gdyż są to zmienne na skali porządkowej.
 
 ```{r}
 km_by_trt <- survfit(Surv(time, status) ~ trt, conf.type="plain", data=diabetic)
@@ -195,7 +207,7 @@ print("Wyniki pozostałych testów")
 cbind(a$W, a$pNorm)
 ```
 
-Powyżej przedstawiony został wpływ zmiennej **trt** na wyniki prawdopobieństwa utarty wzroku przez badaną jednostkę. Jak możemy zauważyć linie zachowują inaczej. Badana jednostka ma 80% szans na utrzymanie wzroku dłużej niż 15 miesięcy bez leczenia. W przypadku leczenia laserowego badana jednostka ma 80% szans na utrzymanie wzroku dłużej niż 20 miesięcy. Po wynikach testu możemy również zauważyć różnicę rozkładów. Test Log Rank wskazuje na poziomie istotności 0,05 na odrzucenie hipotezy zerowej na rzecz alternatywnej mówiącej o różnicy rozkładów, co oznacza, że jest znaczna różnica pomiędzy wynikami braku zabiegów a przyjmowaniem zabiegu laserowego.
+Powyżej przedstawiony został wpływ leczenia (zmienna **trt**) na wyniki prawdopobieństwa utraty wzroku przez badaną jednostkę. Badana jednostka ma 80% szans na utrzymanie wzroku do 15 miesięcy bez leczenia. W przypadku zastosowania leczenia laserowego badana jednostka ma 80% szans na utrzymanie wzroku dłużej niż 20 miesięcy. Po wynikach testu możemy również zauważyć różnicę rozkładów. Test Log Rank wskazuje na poziomie istotności 0,05 na odrzucenie hipotezy zerowej na rzecz alternatywnej mówiącej o różnicy rozkładów, co oznacza, że jest znaczna różnica pomiędzy wynikami braku zabiegów, a przyjmowaniem zabiegu laserowego.
 
 ```{r}
 
@@ -217,7 +229,7 @@ cbind(a$W, a$tft$pNorm)
 
 ```
 
-Interpretacja...
+Wyniki testów dla zmiennej kategoryzowanej Age wskazują, że nie występuje istotna różnica w przeżywalności jednostek w poszczególnych grupach wiekowych.
 
 ```{r}
 
@@ -243,7 +255,7 @@ cbind(a$W, a$pSupBr)
 
 ```
 
-Na powyżej przedstawionym wykresie prawdopodobieństwa utraty wzroku z podziałem na wpływ zmiennych **eye**. Widać, iż przeprowadzone testy wskazały na poziomie istotności 0,05 na odrzucenie hipotezy zerowej i przyjęcie hipotezy alternatywnej, mówiącej o różnicy między wynikami badanych zmiennych. Na wykresie widać, iż do około 80% szans zmienne zachowują się tak samo. Czy to prawe, czy lewe oko to w obu przypadkach występuje około 80% szans na utrzymanie wzroku dłużej niż 20 miesięcy. Po 20 miesiącach zwiększa się prawdopodobieństwo dla lewego oka. Na utrzymanie wzroku dłużej niż 60 miesięcy prawdopodobieństwo dla lewego oka jest nawet o 10% wyższe.
+Na powyżej przedstawionym wykresie przedstawiono prawdopodobieństwo zachowania wzroku z podziałem na badane oko (zmienna **eye**). Na wykresie widać, iż do około 80% szans zmienne zachowują się tak samo. Czy to prawe, czy lewe oko to w obu przypadkach występuje około 80% szans na utrzymanie wzroku do 20 miesięcy. Po 20 miesiącach prawdopodobieństwo zachowania wzroku spada wolniej dla lewego oka w porównaniu z prawym okiem. Na utrzymanie wzroku dłużej niż 60 miesięcy prawdopodobieństwo dla lewego oka jest nawet o 10% wyższe. Natomiast przeprowadzone testy na przyjętym poziomie istotności równym 0,05 wskazują na brak możliwości odrzucenia hipotezy zerowej na rzecz hipotezy alternatywnej, mówiącej o istotnej różnicy między wynikami.
 
 ```{r}
 km_by_laser <- survfit(Surv(time, status) ~ laser, conf.type="plain", data=diabetic)
@@ -266,16 +278,15 @@ print("Wyniki pozostałych testów")
 cbind(a$W, a$pSupBr)
 ```
 
-Powyżej przedstawione zostało sprawdzenie prawdopodobieństwa utraty wzroku w przypadku użycia różnej formy terapi laserowej. Po wynikach testów oraz wizualizacji widzimy, iż grupy zachowują się bardzo podobnie. W teście log rank na poziomie istoności 0,05 nie mamy podstaw do odrzucenia hipotezy zerowej mówiącej o podobieństwie rozkładu grup dla utraty wzroku. Badana jednostka ma w przypadku obu zastosowanych metod 80% szans na utrzymanie wzroku dłużej niż 18 miesięcy. Różnica pojawia się na końcu, gdzie osoby leczone xenonem mają około 6% większą szansę utrzymania wzroku dłużej niż 60 miesięcy.
+Powyżej przedstawione zostało sprawdzenie prawdopodobieństwa zachowania wzroku w przypadku zastosowania dwóch różnych typów laserów w terapii. Po wynikach testów oraz wizualizacji widzimy, iż grupy zachowują się bardzo podobnie. W teście log rank na poziomie istotności 0,05 nie mamy podstaw do odrzucenia hipotezy zerowej mówiącej o nieistotnej róznicy w rozkładach grup. Badana jednostka ma w przypadku obu zastosowanych  metod 80% szans na utrzymanie wzroku dłużej niż 18 miesięcy. Jedyna zauważalna różnica pomiędzy krzywymi pojawia się pod koniec badania,kiedy to oczy leczone xenonem mają około 6% większą szansę utrzymania wzroku dłużej niż 60 miesięcy.
 
 ```{r}
 
 km_by_risk <- survfit(Surv(time, status) ~ risk, conf.type="plain", data=diabetic)
 plot(km_by_risk, col=c("blue", "red", "green"
-, "yellow","grey", 'black'),xlab="Czas",ylab="Prawdopodobieństwo przeżycia")
-legend(10,0.3,c("6", "8", "9", "10", "11", "12"),lty=1, col=c("blue", "red", "green"
-, "yellow","grey", 'black'),bty="n")
-
+, "purple","grey", 'black'),xlab="Czas",ylab="Prawdopodobieństwo przeżycia")
+legend(x='bottom',0.3,c("6", "8", "9", "10", "11", "12"),lty=1, col=c("blue", "red", "green"
+, "purple","grey", 'black'),bty="n")
 
 test=survdiff(Surv(time, status) ~ risk, data=diabetic, rho=1)
 print("Wyniki testu Peto-Peto")
@@ -293,9 +304,7 @@ print("Wyniki pozostałych testów")
 cbind(a$tft$W, a$tft$pNorm)
 ```
 
-Do sprawdzenia, czy dobrze tu są brane zmienne na wykres.
-
-Na podstawie wyników testów możemy stwierdzić, iż na poziomie istoności 0,05 odrzucamy hipotezę zerową mówiącą o podobieństwie grup na rzecz alternatywnej. Badane przez nas grupy mają rożne rozkłady przeżycia. Zauważyć możemy, iż nakrótszy okres przeżycia będzie w grupie 10. Najdłużysz będzie w najniższej grupie 6.
+Na podstawie wyników testów możemy stwierdzić, iż na poziomie istoności 0,05 odrzucamy hipotezę zerową mówiącą o równych sobie rozkładach prawdopodobieństwa grup na rzecz hipotezy alternatywnej. Badane przez nas grupy mają rożne rozkłady przeżycia. Zauważyć możemy, iż nakrótszy okres przeżycia będzie w grupie 10. Najdłużysz będzie w najniższej grupie 6.
 
 
 
