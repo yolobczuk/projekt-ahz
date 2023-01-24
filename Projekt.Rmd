@@ -369,7 +369,6 @@ summary(Cox)
 library(MASS)
 stepAIC(Cox,direction="backward")
 ```
-
 Po zastosowaniu minimalizowania kryterium AIC okazało się, że wybrany został model początkowy. Zawiera on jednak trzy nieistotne statystycznie zmienne (a raczej nieistotne statystycznie różnice między poziomami zmiennych) `age_fct`, `eye` oraz `laser`. Usuniemy te zmienne z modelu.
 
 ```{r}
@@ -402,7 +401,7 @@ for (i in 1:2)
 }
 ```
 
-Z powyższych testów wynika, że dla wszystkich wariantów transformacji czasów przetrwania funkcja skumulowanego hazardu jest proporcjonalna dla zmiennych w czasie. Wykresy skalowanych reszt Schoenfelda potwierdzają ten fakt. Przystąpimy teraz do wyrzucenia ze zbioru wartości odstających, wyliczonych na podstawie reszt z wyestymowanego wcześniej modelu. Posłużymy się tutaj odchyleniami standardowymi od wartości pradziwych oraz statystyką dfbeta, która służy do wykrywania wpływowych obserwacji.
+Z powyższych testów wynika, że dla wszystkich wariantów transformacji czasów przetrwania, funkcja skumulowanego hazardu jest proporcjonalna dla zmiennych w czasie. Wykresy skalowanych reszt Schoenfelda potwierdzają ten fakt. Przystąpimy teraz do wyrzucenia ze zbioru wartości odstających, wyliczonych na podstawie reszt z wyestymowanego wcześniej modelu. Posłużymy się tutaj odchyleniami standardowymi od wartości pradziwych oraz statystyką dfbeta, która służy do wykrywania wpływowych obserwacji.
 
 ```{r}
 deviance <- residuals(Cox,type="deviance")
