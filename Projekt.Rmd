@@ -1,9 +1,16 @@
 ---
-title: "R Notebook"
-output: html_notebook
+title: "Projekt z przedmiotu Analiza Historii Zdarzeń"
+author: "Marcel Gęsicki, Jan Jarosz, Paweł Kawecki, Wojciech Sobczuk (261172)"
+output:
+  html_document:
+    df_print: paged
+    code_folding: hide
 ---
 
-
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE)
+```
 
 ```{r include = F}
 library(survival)
@@ -16,15 +23,16 @@ library(tidyr)
 
 # Wprowadzenie, eksploracyjna analiza danych
 
-Badany w niniejszym opracowaniu zbiór danych składa się z danych medycznych odnoszących się do wyników koagulacji laserowej w leczeniu ratinopatii cukrzycowej. Samo schorzenie spowodowane jest uszkodzeniem naczyń krwionośnych siatkówki oka. W celu wyleczenia schorzenia używana jest laseroterapia siatkówki. W niniejszej pracy analizowany przez nas będzie czas przeżycia w kontekście utraty ostrości wzroku oraz wpływu danych zmiennych na spowolnienie tego procesu. Zbiór danych składa się z następujących zmiennych:
-  - **id**: Odnosi się do indywidualnego numeru badanej jednostki. W grupie badawczej jest 197 indywidualnych jednostek.
-  - **laser**: typ zastosowanego rozwiązania laserowego w leczeniu. W próbie znajdują się dwie zmienne. Xenon oraz argon.
-  - **age**: Wiek pacjenta w chwili wykrycia schorzenia.
-  - **eye**: Badane oko. Zmienne to "left" oraz "right"
-  - **trt**: Zmienna dychtomiczna odnosząca się do leczenia. 0 = brak leczenia, 1 =  leczenie laserowe.
-  - **risk**: Grupy ryzyka w skali 6-12.
-  - **time**: Czas w miesiącach do wystąpienia zdarzenia utraty wzroku, bądź ostatnia zaobserwowana obserwacja.
-  - **status**: Status badanego w postaci dychotomicznej. 0 = ocenzurowane, 1 = utrata wzroku przez badaną jednostkę.
+Badany w niniejszym opracowaniu zbiór danych składa się z danych medycznych odnoszących się do wyników koagulacji laserowej w leczeniu ratinopatii cukrzycowej. Samo schorzenie spowodowane jest uszkodzeniem naczyń krwionośnych siatkówki oka. W celu wyleczenia schorzenia używana jest laseroterapia siatkówki. W niniejszej pracy analizowany przez nas będzie czas przeżycia w kontekście utraty ostrości wzroku oraz wpływu danych zmiennych na spowolnienie tego procesu. Zbiór danych składa się z następujących zmiennych
+
+* **id**: Odnosi się do indywidualnego numeru badanej jednostki. W grupie badawczej jest 197 indywidualnych jednostek.
+* **laser**: typ zastosowanego rozwiązania laserowego w leczeniu. W próbie znajdują się dwie zmienne. Xenon oraz argon.
+* **age**: Wiek pacjenta w chwili wykrycia schorzenia.
+* **eye**: Badane oko. Zmienne to "left" oraz "right"
+* **trt**: Zmienna dychtomiczna odnosząca się do leczenia. 0 = brak leczenia, 1 =  leczenie laserowe.
+* **risk**: Grupy ryzyka w skali 6-12.
+* **time**: Czas w miesiącach do wystąpienia zdarzenia utraty wzroku, bądź ostatnia zaobserwowana obserwacja.
+* **status**: Status badanego w postaci dychotomicznej. 0 = ocenzurowane, 1 = utrata wzroku przez badaną jednostkę.
 
 
 Analizę rozpoczniemy od zagłębienia się w dane i dokonania transformacji, jeśli takowe będą potrzebne.
@@ -36,7 +44,7 @@ diabetic <- survival::diabetic
 summary(diabetic)
 ```
 
-Powyżej widoczne jest wstępne podsumowanie zmiennych zawartych w rozpatrywanym przez nas zbiorze danych. Widać, że w zbiorze danych nie występują wartości NA oznaczające brak danych. R zinterpretował zmienne `trt` oraz `risk` jako zmienne numeryczne, jednakże są to zmienne jakościowe(typu factor). Poniższy kod kategoryzuje zmienne.
+Powyżej widoczne jest wstępne podsumowanie zmiennych zawartych w rozpatrywanym przez nas zbiorze danych. Widać, że w zbiorze danych nie występują wartości NA oznaczające brak danych. R zinterpretował zmienne `trt` oraz `risk` jako zmienne numeryczne, jednakże są to zmienne jakościowe (typu factor). Poniższy kod kategoryzuje zmienne.
 
 ```{r}
 
@@ -105,7 +113,7 @@ rm(mod.1)
 rm(mod.2)
 ```
 
-Oferują nam one bardzo podobną interpretację jak wykresy prawdopodobieństw. Szansa na utratę wzroku bardzo szybko (znów po około 2 miesiącach) było większe od 0 i w dość równomierny sposób wzrastała do poziomu około 0.6, na którym to utrzymywała się od około 60 miesięcy do końca,czyli 75 miesięcy. Przejdziemy teraz do wyznaczenia krzywych dla predyktorów zawartych w naszym zbiorze danych - zmiennych `trt`, `age`, `laser`, `eye` oraz `risk`.
+Oferują nam one bardzo podobną interpretację jak wykresy prawdopodobieństw. Szansa na utratę wzroku bardzo szybko (znów po około 2 miesiącach) było większe od 0 i w dość równomierny sposób wzrastała do poziomu około 0.6, na którym to utrzymywała się od około 60 miesięcy do końca, czyli 75 miesięcy. Przejdziemy teraz do wyznaczenia krzywych dla predyktorów zawartych w naszym zbiorze danych - zmiennych `trt`, `age`, `laser`, `eye` oraz `risk`.
 
 ```{r}
 mod.km.trt <- survfit(Surv(time, status) ~ trt, conf.type="plain", data=diabetic)
@@ -125,7 +133,7 @@ legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black',
 ```
 
 **Krzywa zachowania wzroku zmiennej trt**
-Powyżej przedstawione zostały wykresy prawdopodbieństwa zachowania wzroku z wykorzystaniem estymatora Kaplana-Meiera oraz Nelona-Aalena. Widzimy w przypadku krzywej zachowania wzroku dla zmiennej **trt**, że prawdopodobeństwo zachowania wzroku stopniowo maleje. Wartości obu estymatorów są bardzo podobno co potwierdza fakt, że obie linie się nakładają w obrębie grup. Zauważyć można jednak duży rozstrzał w prawdopodobieństwach zachowania wzroku dla grup z terapią oraz bez niej. Zostanie to głębiej zbadane w dalszej części pracy. 
+Powyżej przedstawione zostały wykresy prawdopodobieństwa zachowania wzroku z wykorzystaniem estymatora Kaplana-Meiera oraz Nelsona-Aalena. Widzimy w przypadku krzywej zachowania wzroku dla zmiennej **trt**, że prawdopodobeństwo zachowania wzroku stopniowo maleje. Wartości obu estymatorów są bardzo podobno co potwierdza fakt, że obie linie się nakładają w obrębie grup. Zauważyć można jednak duży rozstrzał w prawdopodobieństwach zachowania wzroku dla grup z terapią oraz bez niej. Zostanie to głębiej zbadane w dalszej części pracy. 
 
 **Krzywa zachowania wzroku zmiennej age**
 Ze względu na dość chaotyczny wygląd wykresu dla zmiennej age, zdecydowaliśmy się na faktoryzację tej zmiennej poprzez podział kwantylowy. Poniżej znajdują się wykresy z estymatorami K-M oraz N-A dla tej zmiennej.
