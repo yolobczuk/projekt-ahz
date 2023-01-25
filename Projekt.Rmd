@@ -383,13 +383,15 @@ Weryfikacja założenia o proporcjonalności, H0 - hazard jest proporcjonalny dl
 ```{r}
 Prop=cox.zph(Cox,transform="identity")
 print(Prop)
-plot(Prop)
+plot(Prop, main = "Identity transform")
 
 Prop=cox.zph(Cox,transform="rank")
 print(Prop)
+plot(Prop, main = "Rank transform")
 
 Prop=cox.zph(Cox,transform="km")
 print(Prop)
+plot(Prop, main = "KM transform")
 
 reszty=resid(Cox, type="scaledsch")
 Time=as.numeric(rownames(reszty))
@@ -401,7 +403,7 @@ for (i in 1:2)
 }
 ```
 
-Z powyższych testów wynika, że dla wszystkich wariantów transformacji czasów przetrwania, funkcja skumulowanego hazardu jest proporcjonalna dla zmiennych w czasie. Wykresy skalowanych reszt Schoenfelda potwierdzają ten fakt. Przystąpimy teraz do wyrzucenia ze zbioru wartości odstających, wyliczonych na podstawie reszt z wyestymowanego wcześniej modelu. Posłużymy się tutaj odchyleniami standardowymi od wartości pradziwych oraz statystyką dfbeta, która służy do wykrywania wpływowych obserwacji.
+Z powyższych testów wynika, że dla wszystkich wariantów transformacji czasów przetrwania, funkcja skumulowanego hazardu jest proporcjonalna dla zmiennych w czasie. Wykresy skalowanych reszt Schoenfelda (W różnych wariantach transformacji czasu przeżycia) potwierdzają ten fakt. Przystąpimy teraz do wyrzucenia ze zbioru wartości odstających, wyliczonych na podstawie reszt z wyestymowanego wcześniej modelu. Posłużymy się tutaj odchyleniami standardowymi od wartości pradziwych oraz statystyką dfbeta, która służy do wykrywania wpływowych obserwacji.
 
 ```{r}
 deviance <- residuals(Cox,type="deviance")
@@ -435,5 +437,21 @@ summary(Cox2)
 ```
 
 Ujemny współczynnik dla zmiennej `trt` przy wariancie 1 oznacza, że poddanie się terapii redukuje hazard (czyli ryzyko utraty wzroku) o 99\% w stosunku do nie poddawania się terapii, przy niezmienionej grupie ryzyka. Współczynnik przy zmiennej `risk_fct` oznacza, że bycie w grupie wysokiego ryzyka zwiększa hazard (czyli ryzyko utraty wzroku) o 1140\% w stosunku do grupy niższego ryzyka, przy niezmienionej wartości zmiennej `trt`.  
+
+```{r}
+Prop=cox.zph(Cox2,transform="identity")
+print(Prop)
+plot(Prop, main = "Identity transform")
+
+Prop=cox.zph(Cox2,transform="rank")
+print(Prop)
+plot(Prop, main = "Rank transform")
+
+Prop=cox.zph(Cox2,transform="km")
+print(Prop)
+plot(Prop, main = "KM transform")
+```
+
+Jak widać powyżej - założenia dla tego modelu również zostały spełnione, mimo faktu, że znajdujemy się bardzo blisko granicy poziomu istotności dla zmiennej `risk_fct`. 
 
 Podsumowując całą pracę - na podstawie danych wejściowych udało nam się stwierdzić, że poddanie się terapii zwiększa szansę na zachowanie wzroku w stosunku do grupy nie poddającej się terapii, a grupa wysokiego ryzyka cechuje się bardzo wielką dysproporcją w szansach na zachowanie wzroku - na korzyść grupy mniejszego ryzyka.
