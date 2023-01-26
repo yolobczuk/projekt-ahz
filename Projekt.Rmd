@@ -189,7 +189,7 @@ legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black',
 Powyżej przedstawione zostały wykresy prawdopodobieństwa zachowania wzroku z wykorzystaniem estymatora Kaplana-Meiera oraz Nelsona-Aalena. Widzimy w przypadku krzywej zachowania wzroku dla zmiennej **trt**, że prawdopodobeństwo zachowania wzroku stopniowo maleje. Wartości obu estymatorów są bardzo podobno co potwierdza fakt, że obie linie się nakładają w obrębie grup. 
 
 ```{r}
-autoplot(mod.km.trt)
+autoplot(mod.km.trt, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", main = "Krzywa zachowania wzroku dla zmiennej trt")
 ```
 
 Zauważyć można jednak duży rozstrzał w prawdopodobieństwach zachowania wzroku dla grup z terapią oraz bez niej. Zostanie to głębiej zbadane w dalszej części pracy. 
@@ -215,7 +215,7 @@ mod.na.laser <- survfit(Surv(time, status) ~ laser, conf.type="plain", data=diab
 plot(mod.km.laser, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = 'black',lwd = 2.5, main="Krzywa zachowania wzroku dla zmiennej laser")
 lines(mod.na.laser, col="red")
 legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black','red'), pch=16)
-autoplot(mod.km.laser)
+autoplot(mod.km.laser, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", main = "Krzywa zachowania wzroku dla zmiennej laser")
 
 mod.km.eye <- survfit(Surv(time, status) ~ eye, conf.type="plain", data=diabetic)
 mod.na.eye <- survfit(Surv(time, status) ~ eye, conf.type="plain", data=diabetic, type="fleming-harrington")
@@ -223,7 +223,7 @@ mod.na.eye <- survfit(Surv(time, status) ~ eye, conf.type="plain", data=diabetic
 plot(mod.km.eye, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = 'black',lwd = 2.5, main="Krzywa zachowania wzroku dla zmiennej eye")
 lines(mod.na.eye, col="red")
 legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black','red'), pch=16)
-autoplot(mod.km.eye)
+autoplot(mod.km.eye, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", main = "Krzywa zachowania wzroku dla zmiennej eye")
 
 mod.km.risk <- survfit(Surv(time, status) ~ risk, conf.type="plain", data=diabetic)
 mod.na.risk <- survfit(Surv(time, status) ~ risk, conf.type="plain", data=diabetic, type="fleming-harrington")
@@ -404,7 +404,7 @@ diabetic$risk_fct <- factor((as.numeric(diabetic$risk)>=4)*1)
 
 km_by_risk_fct <- survfit(Surv(time, status) ~ risk_fct, conf.type="plain", data=diabetic)
 plot(km_by_risk_fct, col=c("blue", "red"),xlab="Czas",ylab="Prawdopodobieństwo zachowania wzroku", main="Krzywa zachowania wzroku dla grup zmiennej risk_fct")
-legend(10,0.3,c("< 10", "> 10"),lty=1, col=c("blue", "red"),bty="n")
+legend(10,0.3,c("< 10", ">= 10"),lty=1, col=c("blue", "red"),bty="n")
 
 test=survdiff(Surv(time, status) ~ risk_fct, data=diabetic, rho=1)
 print("Wyniki testu Peto-Peto")
