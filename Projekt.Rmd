@@ -1,6 +1,6 @@
 ---
 title: "Projekt z przedmiotu Analiza Historii Zdarzeń"
-author: "Marcel Gęsicki, Jan Jarosz, Paweł Kawecki, Wojciech Sobczuk (261172)"
+author: "Marcel Gęsicki (282631), Jan Jarosz (261151), Paweł Kawecki (282639), Wojciech Sobczuk (261172)"
 output:
   html_document:
     df_print: paged
@@ -19,6 +19,9 @@ library(gtools)
 library(ggplot2)
 library(dplyr)
 library(tidyr)
+library(patchwork)
+library(glue)
+library(ggfortify)
 ```
 
 # Wprowadzenie, eksploracyjna analiza danych
@@ -48,46 +51,94 @@ Powyżej widoczne jest wstępne podsumowanie zmiennych zawartych w rozpatrywanym
 
 ```{r}
 
-diabetic <- diabetic %>% mutate(trt = as.factor(as.character(trt)), risk = as.factor(risk))
+diabetic <- diabetic %>%
+  mutate(trt = as.factor(as.character(trt)),
+         risk = as.factor(risk),
+         status = as.factor(status))
 
 ```
 
 Następnie zwizualizowane zostaną rozkłady zmiennych ze zbioru.
 
 ```{r}
+age <- diabetic %>% dplyr::select(c(age))
+df_age <- data.frame(age)
 
-diabetic.plot.hist = diabetic %>% dplyr::select(c(age, time))
-
-plot1 <- ggplot(gather(diabetic.plot.hist), aes(x = value)) +  
-  geom_histogram(colour = 1, fill = "blue", bins = 30)+
-  ggtitle("Rozkłady zmiennych zbioru danych")+
+ggplot(df_age, aes(x=age))+
+    geom_histogram(colour = 1,
+                   fill = "lightblue",
+                   bins=30) +
+  ggtitle("Rozkład zmiennej age")+
   ylab("Częstość występowania")+
   xlab("Wartość zmiennej")+
-  facet_wrap(~ key, scales = "free", ncol = 2)
-plot1
+  geom_density(aes(y = ..density.. *1000),
+               lwd = 1,
+               linetype = 2,
+               colour= 1,
+               fill = 'red',
+               alpha = 0.15)
 
-diabetic.plot.bar = diabetic %>% dplyr::select(c(laser, eye, trt, status))
+time <- diabetic %>% dplyr::select(c(time))
+df_time <- data.frame(time)
 
-plot2 <- ggplot(gather(diabetic.plot.bar), aes(x = value)) +  
-  geom_bar(colour = 1, fill = "blue")+
-  ggtitle("Rozkłady zmiennych zbioru danych")+
+ggplot(df_time, aes(x=time))+
+    geom_histogram(colour = 1,
+                   fill = "lightblue",
+                   bins=30) +
+  ggtitle("Rozkład zmiennej time")+
   ylab("Częstość występowania")+
   xlab("Wartość zmiennej")+
-  facet_wrap(~ key, scales = "free", ncol = 2)
-plot2
+  geom_density(aes(y = ..density.. *1000),
+               lwd = 1,
+               linetype = 2,
+               colour= 1,
+               fill = 'red',
+               alpha = 0.15)
 
-ggplot(as.data.frame(table(diabetic$risk)), aes(x=Var1, y = Freq)) + geom_col(colour = 1, fill = "blue")+
-    ylab("Częstość występowania")+
-    xlab("Wartość zmiennej risk")
+risk <- diabetic %>% dplyr::select(c(risk))
+df_risk <- data.frame(risk)
 
-rm(diabetic.plot.bar)
-rm(diabetic.plot.hist)
+ggplot(df_risk, aes(x=risk))+
+    geom_bar(colour = 1,
+                   fill = "lightblue") +
+  ggtitle("Częstości w zmiennej risk")+
+  ylab("Częstość występowania")+
+  xlab("Wartość zmiennej")
+
+
+generate_pie <- function(column){
+  name <- deparse(substitute(column))
+  df <- data.frame(column)
+  agg <- df %>% count(df[,1]) %>% as.data.frame()
+  colnames(agg)[1] <- 'group'
+  p1 <- ggplot(agg, aes(x = "", y=n, fill=group)) +
+    geom_bar(stat = 'identity', width = 1, color='white')+
+    ggtitle(glue("Podział zmiennej {name}"))+
+    coord_polar('y', start=0)+
+    scale_fill_manual(values=c("lightpink2", 'lightblue'))+
+    theme_void()
+  
+  return(p1)
+}
+
+p_1 <- generate_pie(diabetic$laser)
+p_2 <- generate_pie(diabetic$eye)
+p_3 <- generate_pie(diabetic$trt)
+p_4<- generate_pie(diabetic$status)
+
+p_1 + p_2 + p_3 + p_4
+
+
+diabetic <- diabetic %>%
+  mutate(status = as.numeric(status))
 ```
 
-Pierwsza dwa wykresy przedstawiają częstotliwość występowowania wartośći w zmiennych **age** oraz **time**. Zauważyć możemy, iż duża liczba pacjentów ze zdiagnozowaną chorbą znajduje się pomiędzy 8 a 20 rokiem życia. Najmniej zdiagnozowano osób w wieku powyżej 55 lat. Obok widoczny jest wykres częstotliowści liczby miesięcy do momentu utraty wzroku. Najczęstszymi wartościami czasu do utraty wzroku są 3 do 4 oraz 38 do 42 miesięcy od diagnozy. 
+Pierwsza dwa histogramy przedstawiają rozkład wartośći w zmiennych **age** oraz **time**. Zauważyć możemy, iż duża liczba pacjentów ze zdiagnozowaną chorbą znajduje się pomiędzy 8 a 20 rokiem życia.  wiek około 45 lat skupio wokół siebie sporo pacjentów z grupy osób dorosłych. Najmniej zdiagnozowano osób w wieku powyżej 55 lat. Obok widoczny jest wykres częstotliowści liczby miesięcy do momentu utraty wzroku. Najczęstszymi wartościami czasu do utraty wzroku są 3 do 4 oraz 38 do 42 miesięcy od diagnozy. Aczkolwiek, rozkład zmiennej time jest bardzo nieregularny i ciężko zauważyć tutaj wyraźne okresy koncentracji. 
 
-Kolejne wykresy przedstawiają rozkład dla zmiennych **eye**, **laser**, **status** oraz **trt**. W przypadku zmiennej eye mamy równą taką samą liczbę obserwacji dla prawego i lewego oka. Częstściej w leczeniu stosowany jest typ lasera xenonowego, niż argonowego. W zmiennej status przeważa liczba danych cenzurowanych (239), niż utraty wzroku (155). Ostatnia prezentowana na wykresie zmienna to trt. W tym przypadku mamy równą liczbę obserwacji z zastosowaniem i nie zastosowaniem leczenia.
-Ostatni analizowany powyżej wykres prezentuje rozkład częstości występowania danej grupy ryzyka (**risk**). Widać, że najczęściej przypisywana jest wartość 9 oraz 10. Najrzadszą wartością są grupy ryzyka na poziomie 6 oraz 8. 
+Kolejny analizowany powyżej wykres prezentuje rozkład częstości występowania danej grupy ryzyka (**risk**). Widać, że najczęściej przypisywana jest wartość 9 oraz 10. Najrzadszą wartością są grupy ryzyka na poziomie 6 oraz 8.
+
+Kolejne wykresy przedstawiają podział zbiorów **eye**, **laser**, **status** oraz **trt**. W przypadku zmiennej eye mamy równą taką samą liczbę obserwacji dla prawego i lewego oka. Częstściej w leczeniu stosowany jest typ lasera xenonowego, niż argonowego. Następna prezentowana na wykresie zmienna to trt. W tym przypadku mamy równą liczbę obserwacji z zastosowaniem i nie zastosowaniem leczenia. W ostatniej prezentowanej zmiennej, czyli status, przeważająca jest liczba danych cenzurowanych (239), niż utraty wzroku (155).
+ 
 
 # Wstępna analiza utraty wzroku
 
@@ -97,7 +148,7 @@ Analizę rozpoczniemy od estymacji krzywej prawdopodobieństwa zachowania wzroku
 mod.1 <- survfit(Surv(time, status) ~ 1, conf.type="plain", data=diabetic)
 mod.2 <- survfit(Surv(time, status) ~ 1, conf.type="plain", type="fleming-harrington", data=diabetic)
 
-plot(mod.1, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = 'black', pch=16)
+plot(mod.1, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = 'black', pch=16, lwd = 2.5)
 lines(mod.2, col="red", pch=16)
 legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black','red'), pch=16)
 ```
@@ -105,7 +156,7 @@ legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black',
 Na powyższym wykresie nie zauważyliśmy dużych różnic pomiędzy obydwoma estymatorami. Bardzo szybko (po około 2 miesiącach) prawdopodobieństwo zachowania wzroku spada poniżej 1 i utrzymuje ten spadek aż do poziomu około 60\% na którym to utrzymuje się od 60 miesięcy aż do 75 miesięcy. Spojrzymy teraz na wykresy skumulowanego hazardu.
 
 ```{r}
-plot(mod.1, fun="cumhaz", xlab="Czas", ylab="Hazard skumulowany", col = 'black')
+plot(mod.1, fun="cumhaz", xlab="Czas", ylab="Hazard skumulowany", col = 'black', lwd = 2.5)
 lines(mod.2, fun="cumhaz", col="red")
 legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black','red'), pch=16)
 
@@ -119,7 +170,9 @@ Oferują nam one bardzo podobną interpretację jak wykresy prawdopodobieństw. 
 mod.km.trt <- survfit(Surv(time, status) ~ trt, conf.type="plain", data=diabetic)
 mod.na.trt <- survfit(Surv(time, status) ~ trt, conf.type="plain", data=diabetic, type="fleming-harrington")
 
-plot(mod.km.trt, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = 'black', main="Krzywa zachowania wzroku dla zmiennej trt")
+
+
+plot(mod.km.trt, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = 'black', lwd = 2.5, main="Krzywa zachowania wzroku dla zmiennej trt")
 lines(mod.na.trt, col="red")
 legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black','red'), pch=16)
 
@@ -133,10 +186,17 @@ legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black',
 ```
 
 **Krzywa zachowania wzroku zmiennej trt**
-Powyżej przedstawione zostały wykresy prawdopodobieństwa zachowania wzroku z wykorzystaniem estymatora Kaplana-Meiera oraz Nelsona-Aalena. Widzimy w przypadku krzywej zachowania wzroku dla zmiennej **trt**, że prawdopodobeństwo zachowania wzroku stopniowo maleje. Wartości obu estymatorów są bardzo podobno co potwierdza fakt, że obie linie się nakładają w obrębie grup. Zauważyć można jednak duży rozstrzał w prawdopodobieństwach zachowania wzroku dla grup z terapią oraz bez niej. Zostanie to głębiej zbadane w dalszej części pracy. 
+Powyżej przedstawione zostały wykresy prawdopodobieństwa zachowania wzroku z wykorzystaniem estymatora Kaplana-Meiera oraz Nelsona-Aalena. Widzimy w przypadku krzywej zachowania wzroku dla zmiennej **trt**, że prawdopodobeństwo zachowania wzroku stopniowo maleje. Wartości obu estymatorów są bardzo podobno co potwierdza fakt, że obie linie się nakładają w obrębie grup. 
+
+```{r}
+autoplot(mod.km.trt)
+```
+
+Zauważyć można jednak duży rozstrzał w prawdopodobieństwach zachowania wzroku dla grup z terapią oraz bez niej. Zostanie to głębiej zbadane w dalszej części pracy. 
+
 
 **Krzywa zachowania wzroku zmiennej age**
-Ze względu na dość chaotyczny wygląd wykresu dla zmiennej age, zdecydowaliśmy się na faktoryzację tej zmiennej poprzez podział kwantylowy. Poniżej znajdują się wykresy z estymatorami K-M oraz N-A dla tej zmiennej.
+Ze względu na dość chaotyczny wygląd wykresu dla zmiennej age, zdecydowaliśmy się na faktoryzację tej zmiennej poprzez podział kwantylowy. W normalnej postaci interpretacja wykresu jest bardzo niepraktyczna. Poniżej znajdują się wykresy z estymatorami K-M oraz N-A dla tej zmiennej.
 
 ```{r}
 diabetic$ageCat <- quantcut(diabetic$age,q=4)
@@ -144,7 +204,7 @@ diabetic$ageCat <- quantcut(diabetic$age,q=4)
 mod.km.ageCat <- survfit(Surv(time, status) ~ ageCat, conf.type="plain", data=diabetic)
 mod.na.ageCat <- survfit(Surv(time, status) ~ ageCat, conf.type="plain", data=diabetic, type="fleming-harrington")
 
-plot(mod.km.ageCat, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = 'black', main="Krzywa zachowania wzroku dla zmiennej ageCat (po faktoryzacji)")
+plot(mod.km.ageCat, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = 'black', lwd = 2.5, main="Krzywa zachowania wzroku dla zmiennej ageCat (po faktoryzacji)")
 lines(mod.na.ageCat, col="red")
 legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black','red'), pch=16)
 ```
@@ -152,27 +212,31 @@ legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black',
 mod.km.laser <- survfit(Surv(time, status) ~ laser, conf.type="plain", data=diabetic)
 mod.na.laser <- survfit(Surv(time, status) ~ laser, conf.type="plain", data=diabetic, type="fleming-harrington")
 
-plot(mod.km.laser, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = 'black', main="Krzywa zachowania wzroku dla zmiennej laser")
+plot(mod.km.laser, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = 'black',lwd = 2.5, main="Krzywa zachowania wzroku dla zmiennej laser")
 lines(mod.na.laser, col="red")
 legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black','red'), pch=16)
+autoplot(mod.km.laser)
 
 mod.km.eye <- survfit(Surv(time, status) ~ eye, conf.type="plain", data=diabetic)
 mod.na.eye <- survfit(Surv(time, status) ~ eye, conf.type="plain", data=diabetic, type="fleming-harrington")
 
-plot(mod.km.eye, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = 'black', main="Krzywa zachowania wzroku dla zmiennej eye")
+plot(mod.km.eye, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = 'black',lwd = 2.5, main="Krzywa zachowania wzroku dla zmiennej eye")
 lines(mod.na.eye, col="red")
 legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black','red'), pch=16)
+autoplot(mod.km.eye)
 
 mod.km.risk <- survfit(Surv(time, status) ~ risk, conf.type="plain", data=diabetic)
 mod.na.risk <- survfit(Surv(time, status) ~ risk, conf.type="plain", data=diabetic, type="fleming-harrington")
 
-plot(mod.km.risk, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = 'black', main="Krzywa zachowania wzroku dla zmiennej risk")
+plot(mod.km.risk, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = 'black',lwd = 2.5, main="Krzywa zachowania wzroku dla zmiennej risk")
 lines(mod.na.risk, col="red")
 legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black','red'), pch=16)
 
 ```
 
-Na wszystkich trzech powyższych wykresach również nie widać różnic między estymatorami dla grup. Dlatego też w dalszej części pracy używać będziemy estymatorów Kaplana-Meiera.
+Na wszystkich trzech powyższych wykresach również nie widać różnic między estymatorami dla grup. Dlatego też w dalszej części pracy używać będziemy estymatorów Kaplana-Meiera. Widać zauważanle różnice pomiędzy szansą na zachowanie wzroku pomiędzy prawym a lewym okiem. 
+
+Nie rozrysowujemy wykresów dla zmiennych które maja większa ilość kategorii, gdyż wykresy w tym wypadku sa skrajnie nieczytelne.
 
 # Testy krzywych przetrwania
 
@@ -224,6 +288,7 @@ cbind(a$tft$W, a$tft$pNorm)
 ```
 
 Wyniki testów oraz wygląd wykresu dla zmiennej skategoryzowanej Age wskazują, że nie występuje istotna różnica w prawdopodobieństwie zachowania wzroku jednostek w poszczególnych grupach wiekowych.
+
 
 ```{r}
 
