@@ -29,16 +29,16 @@ library(ggfortify)
 Badany w niniejszym opracowaniu zbiór danych składa się z danych medycznych odnoszących się do wyników koagulacji laserowej w leczeniu ratinopatii cukrzycowej. Samo schorzenie spowodowane jest uszkodzeniem naczyń krwionośnych siatkówki oka. W celu wyleczenia schorzenia używana jest laseroterapia siatkówki. W niniejszej pracy analizowany przez nas będzie czas przeżycia w kontekście utraty ostrości wzroku oraz wpływu danych zmiennych na spowolnienie tego procesu. Zbiór danych składa się z następujących zmiennych
 
 * **id**: Odnosi się do indywidualnego numeru badanej jednostki. W grupie badawczej jest 197 indywidualnych jednostek.
-* **laser**: typ zastosowanego rozwiązania laserowego w leczeniu. W próbie znajdują się dwie zmienne. Xenon oraz argon.
+* **laser**: typ zastosowanego rozwiązania laserowego w leczeniu. Zmienna zawiera dwa warianty - Xenon oraz argon.
 * **age**: Wiek pacjenta w chwili wykrycia schorzenia.
-* **eye**: Badane oko. Zmienne to "left" oraz "right"
+* **eye**: Badane oko. Warianty to "left" oraz "right"
 * **trt**: Zmienna dychtomiczna odnosząca się do leczenia. 0 = brak leczenia, 1 =  leczenie laserowe.
 * **risk**: Grupy ryzyka w skali 6-12.
 * **time**: Czas w miesiącach do wystąpienia zdarzenia utraty wzroku, bądź ostatnia zaobserwowana obserwacja.
 * **status**: Status badanego w postaci dychotomicznej. 0 = ocenzurowane, 1 = utrata wzroku przez badaną jednostkę.
 
 
-Analizę rozpoczniemy od zagłębienia się w dane i dokonania transformacji, jeśli takowe będą potrzebne.
+Analizę rozpoczniemy od zagłębienia się w dane i dokonania transformacji, jeśli takowa będzie potrzebna.
 
 ```{r}
 diabetic <- survival::diabetic
@@ -133,11 +133,11 @@ diabetic <- diabetic %>%
   mutate(status = as.numeric(status))
 ```
 
-Pierwsza dwa histogramy przedstawiają rozkład wartośći w zmiennych **age** oraz **time**. Zauważyć możemy, iż duża liczba pacjentów ze zdiagnozowaną chorbą znajduje się pomiędzy 8 a 20 rokiem życia.  wiek około 45 lat skupio wokół siebie sporo pacjentów z grupy osób dorosłych. Najmniej zdiagnozowano osób w wieku powyżej 55 lat. Obok widoczny jest wykres częstotliowści liczby miesięcy do momentu utraty wzroku. Najczęstszymi wartościami czasu do utraty wzroku są 3 do 4 oraz 38 do 42 miesięcy od diagnozy. Aczkolwiek, rozkład zmiennej time jest bardzo nieregularny i ciężko zauważyć tutaj wyraźne okresy koncentracji. 
+Pierwsza dwa histogramy przedstawiają rozkład wartości w zmiennych **age** oraz **time**. Zauważyć możemy, iż duża liczba pacjentów ze zdiagnozowaną chorbą znajduje się pomiędzy 8 a 20 rokiem życia.  Wiek około 45 lat skupia wokół siebie sporo pacjentów z grupy osób dorosłych. Najmniej zdiagnozowano osób w wieku powyżej 55 lat. Poniżej widoczny jest wykres częstotliowści liczby miesięcy do momentu utraty wzroku. Najczęstszymi wartościami czasu do utraty wzroku są 3 do 4 oraz 38 do 42 miesięcy od diagnozy. Aczkolwiek, rozkład zmiennej time jest bardzo nieregularny i ciężko zauważyć tutaj wyraźne okresy koncentracji. 
 
 Kolejny analizowany powyżej wykres prezentuje rozkład częstości występowania danej grupy ryzyka (**risk**). Widać, że najczęściej przypisywana jest wartość 9 oraz 10. Najrzadszą wartością są grupy ryzyka na poziomie 6 oraz 8.
 
-Kolejne wykresy przedstawiają podział zbiorów **eye**, **laser**, **status** oraz **trt**. W przypadku zmiennej eye mamy równą taką samą liczbę obserwacji dla prawego i lewego oka. Częstściej w leczeniu stosowany jest typ lasera xenonowego, niż argonowego. Następna prezentowana na wykresie zmienna to trt. W tym przypadku mamy równą liczbę obserwacji z zastosowaniem i nie zastosowaniem leczenia. W ostatniej prezentowanej zmiennej, czyli status, przeważająca jest liczba danych cenzurowanych (239), niż utraty wzroku (155).
+Kolejne wykresy przedstawiają podział zbiorów **eye**, **laser**, **status** oraz **trt**. W przypadku zmiennej eye mamy równą taką samą liczbę obserwacji dla prawego i lewego oka. Częściej w leczeniu stosowany jest typ lasera xenonowego, niż argonowego. Następna prezentowana na wykresie zmienna to trt. W tym przypadku mamy równą liczbę obserwacji z zastosowaniem i nie zastosowaniem leczenia. W ostatniej prezentowanej zmiennej, czyli status, przeważająca jest liczba danych cenzurowanych (239), niż utraty wzroku (155).
  
 
 # Wstępna analiza utraty wzroku
@@ -164,7 +164,7 @@ rm(mod.1)
 rm(mod.2)
 ```
 
-Oferują nam one bardzo podobną interpretację jak wykresy prawdopodobieństw. Szansa na utratę wzroku bardzo szybko (znów po około 2 miesiącach) było większe od 0 i w dość równomierny sposób wzrastała do poziomu około 0.6, na którym to utrzymywała się od około 60 miesięcy do końca, czyli 75 miesięcy. Przejdziemy teraz do wyznaczenia krzywych dla predyktorów zawartych w naszym zbiorze danych - zmiennych `trt`, `age`, `laser`, `eye` oraz `risk`.
+Oferują nam one bardzo podobną interpretację jak wykresy prawdopodobieństw. Szansa na utratę wzroku bardzo szybko (znów po około 2 miesiącach) była większa od 0 i w dość równomierny sposób wzrastała do poziomu około 0.6, na którym to utrzymywała się od około 60 miesięcy do końca, czyli 75 miesięcy. Przejdziemy teraz do wyznaczenia krzywych dla predyktorów zawartych w naszym zbiorze danych - zmiennych `trt`, `age`, `laser`, `eye` oraz `risk`.
 
 ```{r}
 mod.km.trt <- survfit(Surv(time, status) ~ trt, conf.type="plain", data=diabetic)
@@ -236,7 +236,7 @@ legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black',
 
 Na wszystkich trzech powyższych wykresach również nie widać różnic między estymatorami dla grup. Dlatego też w dalszej części pracy używać będziemy estymatorów Kaplana-Meiera. Widać zauważanle różnice pomiędzy szansą na zachowanie wzroku pomiędzy prawym a lewym okiem. 
 
-Nie rozrysowujemy wykresów dla zmiennych które maja większa ilość kategorii, gdyż wykresy w tym wypadku sa skrajnie nieczytelne.
+Nie rozrysowujemy na tym etapie wykresów dla zmiennych które mają większą ilość kategorii, gdyż wykresy w tym wypadku są skrajnie nieczytelne.
 
 # Testy krzywych przetrwania
 
