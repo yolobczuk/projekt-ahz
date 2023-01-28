@@ -78,14 +78,31 @@ ggplot(df_age, aes(x=age))+
                fill = 'red',
                alpha = 0.15)
 
-time <- diabetic %>% dplyr::select(c(time))
-df_time <- data.frame(time)
+time <- diabetic %>% dplyr::filter(status==0) %>% dplyr::select(c(time))
+df_time_nostatus <- data.frame(time)
 
-ggplot(df_time, aes(x=time))+
+ggplot(df_time_nostatus, aes(x=time))+
     geom_histogram(colour = 1,
                    fill = "lightblue",
                    bins=30) +
-  ggtitle("Rozkład zmiennej time")+
+  ggtitle("Rozkład zmiennej time dla wartości status 0")+
+  ylab("Częstość występowania")+
+  xlab("Wartość zmiennej")+
+  geom_density(aes(y = ..density.. *1000),
+               lwd = 1,
+               linetype = 2,
+               colour= 1,
+               fill = 'red',
+               alpha = 0.15)
+
+time <- diabetic %>% dplyr::filter(status==1) %>% dplyr::select(c(time))
+df_time_status <- data.frame(time)
+
+ggplot(df_time_status, aes(x=time))+
+    geom_histogram(colour = 1,
+                   fill = "lightblue",
+                   bins=30) +
+  ggtitle("Rozkład zmiennej time dla wartości status 1")+
   ylab("Częstość występowania")+
   xlab("Wartość zmiennej")+
   geom_density(aes(y = ..density.. *1000),
@@ -133,7 +150,7 @@ diabetic <- diabetic %>%
   mutate(status = as.numeric(status))
 ```
 
-Pierwsza dwa histogramy przedstawiają rozkład wartości w zmiennych **age** oraz **time**. Zauważyć możemy, iż duża liczba pacjentów ze zdiagnozowaną chorbą znajduje się pomiędzy 8 a 20 rokiem życia.  Wiek około 45 lat skupia wokół siebie sporo pacjentów z grupy osób dorosłych. Najmniej zdiagnozowano osób w wieku powyżej 55 lat. Poniżej widoczny jest wykres częstotliowści liczby miesięcy do momentu utraty wzroku. Najczęstszymi wartościami czasu do utraty wzroku są 3 do 4 oraz 38 do 42 miesięcy od diagnozy. Aczkolwiek, rozkład zmiennej time jest bardzo nieregularny i ciężko zauważyć tutaj wyraźne okresy koncentracji. 
+Pierwsza dwa histogramy przedstawiają rozkład wartości w zmiennych **age** oraz **time**. Zauważyć możemy, iż duża liczba pacjentów ze zdiagnozowaną chorbą znajduje się pomiędzy 8 a 20 rokiem życia.  Wiek około 45 lat skupia wokół siebie sporo pacjentów z grupy osób dorosłych. Najmniej zdiagnozowano osób w wieku powyżej 55 lat. Poniżej widoczny jest wykres częstotliowści liczby miesięcy do momentu utraty wzroku, w podziale na pacjentów ocenzurowanych oraz tych, który utracili wzrok. Najczęstszymi wartościami ocenzurowanymi czasu to od 38 do 66 miesięcy od diagnozy. Rozkład zmiennej czasowej dla pacjentów, którzy utracili wzrok skupia się bliżej pirewszych miesięcy. 
 
 Kolejny analizowany powyżej wykres prezentuje rozkład częstości występowania danej grupy ryzyka (**risk**). Widać, że najczęściej przypisywana jest wartość 9 oraz 10. Najrzadszą wartością są grupy ryzyka na poziomie 6 oraz 8.
 
@@ -231,12 +248,11 @@ mod.na.risk <- survfit(Surv(time, status) ~ risk, conf.type="plain", data=diabet
 plot(mod.km.risk, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", col = 'black',lwd = 2.5, main="Krzywa zachowania wzroku dla zmiennej risk")
 lines(mod.na.risk, col="red")
 legend(x = 'bottom', legend = c('Kaplan-Meier','Nelson-Aalen'), col = c('black','red'), pch=16)
+autoplot(mod.km.risk, xlab="Czas", ylab="Prawdopodobieństwo zachowania wzroku", main = "Krzywa zachowania wzroku dla zmiennej risk")
 
 ```
 
 Na wszystkich trzech powyższych wykresach również nie widać różnic między estymatorami dla grup. Dlatego też w dalszej części pracy używać będziemy estymatorów Kaplana-Meiera. Widać zauważanle różnice pomiędzy szansą na zachowanie wzroku pomiędzy prawym a lewym okiem. 
-
-Nie rozrysowujemy na tym etapie wykresów dla zmiennych które mają większą ilość kategorii, gdyż wykresy w tym wypadku są skrajnie nieczytelne.
 
 # Testy krzywych przetrwania
 
